@@ -1,0 +1,8 @@
+name: SpacelifeCore
+author: ProfessorSam
+api-version: 1.19
+version: ${project.version}
+main: de.petropia.spacelifeCore.SpacelifeCore
+depend:
+  - "TurtleServer"
+
