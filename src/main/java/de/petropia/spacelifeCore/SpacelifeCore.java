@@ -1,7 +1,10 @@
 package de.petropia.spacelifeCore;
 
+import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.turtleServer.api.PetropiaPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitTask;
 
 public class SpacelifeCore extends PetropiaPlugin {
@@ -11,6 +14,13 @@ public class SpacelifeCore extends PetropiaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        new SpacelifePlayerDatabase();
+        registerListener();
+    }
+
+    private void registerListener(){
+        PluginManager pluginManager = getServer().getPluginManager();
+        pluginManager.registerEvents(new SpacelifePlayerLoadingListener(), instance);
     }
 
     /**

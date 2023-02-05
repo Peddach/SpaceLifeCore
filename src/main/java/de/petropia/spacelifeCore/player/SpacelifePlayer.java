@@ -17,6 +17,20 @@ public class SpacelifePlayer {
     private double money;
 
     /**
+     * This Construtor is for manuel first time player creation
+     * @param uuid The uuid of the minecraft player
+     */
+    public SpacelifePlayer(String uuid){
+        this.uuid = uuid;
+    }
+
+    /**
+     * Constructor for Morphia
+     */
+    public SpacelifePlayer(){
+
+    }
+    /**
      * Retrieve the uuid which is provided by Mojang
      * @return @{@link UUID} for the player
      */
@@ -25,7 +39,7 @@ public class SpacelifePlayer {
     }
 
     /**
-     * Get the curent money of a player
+     * Get the current money of a player
      * @return money as double
      */
     public double getMoney(){
@@ -62,6 +76,10 @@ public class SpacelifePlayer {
     public void setMoney(double money){
         this.money = money;
         save();
+    }
+
+    public ObjectId getObjectId(){
+        return id;
     }
 
     /**

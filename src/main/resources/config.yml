@@ -1,0 +1,6 @@
+Mongo:
+  Hostname: 127.0.0.1
+  Port: 27017
+  User: Spacelife
+  Database: Spacelife
+  Password: password
