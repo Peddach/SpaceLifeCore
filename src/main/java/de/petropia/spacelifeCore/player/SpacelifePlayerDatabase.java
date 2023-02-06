@@ -1,17 +1,20 @@
 package de.petropia.spacelifeCore.player;
 
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.experimental.filters.Filters;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Hashtable;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class SpacelifePlayerDatabase {
@@ -30,7 +33,13 @@ public class SpacelifePlayerDatabase {
         String username = ensureNotMissingStr(configuration, "Mongo.User");
         String database = ensureNotMissingStr(configuration, "Mongo.Database");
         String password = ensureNotMissingStr(configuration,"Mongo.Password");
-        MongoClient mongoClient = MongoClients.create("mongodb://" + username + ":" + password + "@" + hostname + ":" + port + "/?authSource=" + database); //connecting
+        CodecRegistry pojoCodecRegistry = org.bson.codecs.configuration.CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+        MongoClientSettings setting = MongoClientSettings.builder()
+                .credential(MongoCredential.createCredential(username, database, password.toCharArray()))
+                .applyToClusterSettings(builder -> builder.hosts(List.of(new ServerAddress(hostname, port))))
+                .codecRegistry(pojoCodecRegistry)
+                .build();
+        MongoClient mongoClient = MongoClients.create(setting); //connecting
         datastore = Morphia.createDatastore(mongoClient, database);
         datastore.getMapper().map(SpacelifePlayer.class);
         datastore.ensureIndexes();

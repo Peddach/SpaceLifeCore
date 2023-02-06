@@ -1,11 +1,18 @@
 package de.petropia.spacelifeCore.player;
 
+import de.petropia.spacelifeCore.SpacelifeCore;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.IndexOptions;
 import dev.morphia.annotations.Indexed;
 import org.bson.types.ObjectId;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity(value = "spacelifePlayers")
@@ -15,6 +22,7 @@ public class SpacelifePlayer {
     @Indexed(options = @IndexOptions(unique = true))
     private String uuid;
     private double money;
+    private Map<Integer, Map<String, Object>> inventory;//First Map for Slots, second for serialized Item
 
     /**
      * This Construtor is for manuel first time player creation
@@ -76,6 +84,53 @@ public class SpacelifePlayer {
     public void setMoney(double money){
         this.money = money;
         save();
+    }
+
+    /**
+     * Saves player inventory and clears it
+     */
+    public void saveInventory(){
+        Map<Integer, Map<String, Object>> newInventory = new HashMap<>();
+        Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+        if(player == null){
+            return;
+        }
+        for(int i = 0; i < player.getInventory().getContents().length; i++){
+            ItemStack item = player.getInventory().getContents()[i];
+            if(item == null){
+               continue;
+            }
+            newInventory.put(i, item.serialize());
+        }
+        player.getInventory().clear();
+        if(newInventory.equals(inventory)){
+            SpacelifeCore.getInstance().getMessageUtil().showDebugMessage("Nothing changed!");
+            return;
+        }
+        inventory = newInventory;
+        save();
+    }
+
+    /**
+     * Clears a player's inventory and replaces it
+     */
+    public void loadInventory(){
+        Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+        if(player == null){
+            return;
+        }
+        if(inventory == null){
+            return;
+        }
+        player.getInventory().clear();
+        for(Map.Entry<Integer, Map<String, Object>> indexEntry : inventory.entrySet()){
+            int index = indexEntry.getKey();
+            if(indexEntry.getValue() == null){
+                player.getInventory().setItem(index, new ItemStack(Material.AIR));
+                continue;
+            }
+            player.getInventory().setItem(index, ItemStack.deserialize(indexEntry.getValue()));
+        }
     }
 
     public ObjectId getObjectId(){

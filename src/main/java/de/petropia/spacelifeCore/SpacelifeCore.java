@@ -1,5 +1,6 @@
 package de.petropia.spacelifeCore;
 
+import de.petropia.spacelifeCore.commands.SpacelifeCommand;
 import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.turtleServer.api.PetropiaPlugin;
@@ -16,11 +17,16 @@ public class SpacelifeCore extends PetropiaPlugin {
         instance = this;
         new SpacelifePlayerDatabase();
         registerListener();
+        registerCommands();
     }
 
     private void registerListener(){
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new SpacelifePlayerLoadingListener(), instance);
+    }
+
+    private void registerCommands(){
+        getCommand("spacelife").setExecutor(new SpacelifeCommand());
     }
 
     /**

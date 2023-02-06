@@ -5,4 +5,12 @@ version: ${project.version}
 main: de.petropia.spacelifeCore.SpacelifeCore
 depend:
   - "TurtleServer"
+commands:
+  spacelife:
+    description: "Main admin command"
+    aliases: "sl"
+permissions:
+  spacelife.command.spacelife.debug:
+    default: false
+    description: "Grant access for debugging"
 
