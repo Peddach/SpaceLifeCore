@@ -48,10 +48,14 @@ public class SpacelifePlayerDatabase {
     /**
      * Save a SpacelifePlayer to db async for internal use
      * @param player player
+     * @return CompletableFuture with nothing. Completes when saved
      */
     @ApiStatus.Internal
-    protected void save(final SpacelifePlayer player){
-        SpacelifeCore.runAync(() -> datastore.merge(player));
+    protected CompletableFuture<Void> save(final SpacelifePlayer player){
+        return CompletableFuture.supplyAsync(() -> {
+            datastore.merge(player);
+            return null;
+        });
     }
 
     /**

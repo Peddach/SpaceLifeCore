@@ -3,6 +3,7 @@ package de.petropia.spacelifeCore.commands;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -10,6 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
 
 public class SpacelifeCommand implements CommandExecutor {
     @Override
@@ -50,6 +52,19 @@ public class SpacelifeCommand implements CommandExecutor {
             SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(player.getUniqueId()).thenAccept(SpacelifePlayer::loadInventory).exceptionally(e -> {
                 e.printStackTrace();
                 return null;
+            });
+        }
+        if(args.length == 3 && args[1].equalsIgnoreCase("tpToPlayer")){
+            if(!(sender instanceof Player player)){
+                return;
+            }
+            SpacelifePlayer executor = SpacelifePlayerDatabase.getInstance().getCachedPlayer(player.getUniqueId());
+            executor.teleportCrossServer(new CrossServerLocation(args[2])).thenAccept(bool -> {
+                if (bool) {
+                    SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Sucess"));
+                } else {
+                    SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Fail"));
+                }
             });
         }
     }

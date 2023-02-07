@@ -1,13 +1,22 @@
 package de.petropia.spacelifeCore.player;
 
 import de.petropia.spacelifeCore.SpacelifeCore;
+import de.petropia.spacelifeCore.teleport.CrossServerLocation;
+import de.petropia.turtleServer.server.TurtleServer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SpacelifePlayerLoadingListener implements Listener {
+
+    private static final List<Player> INV_SAVE_BLOCK = new ArrayList<>();
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(AsyncPlayerPreLoginEvent event){
@@ -28,10 +37,28 @@ public class SpacelifePlayerLoadingListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerJoinEvent(PlayerJoinEvent event){
+        SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
+        player.loadInventory();
+        CrossServerLocation target = player.getTargetLocation();
+        if(!target.getServer().equalsIgnoreCase(TurtleServer.getInstance().getCloudNetAdapter().getServerInstanceName())){
+            return;
+        }
+        event.getPlayer().teleport(player.getTargetLocation().convertToBukkitLocation());
+        player.setTargetLocation(null);
+    }
+
+    @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event){
         SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
+        if(!INV_SAVE_BLOCK.contains(event.getPlayer())){
+            player.saveInventory();
+            INV_SAVE_BLOCK.remove(event.getPlayer());
+        }
         SpacelifePlayerDatabase.getInstance().uncachePlayer(player);
     }
 
-
+    public static void blockInvSave(Player player){
+        INV_SAVE_BLOCK.add(player);
+    }
 }
