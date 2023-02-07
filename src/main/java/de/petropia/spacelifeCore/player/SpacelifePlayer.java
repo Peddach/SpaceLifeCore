@@ -1,6 +1,5 @@
 package de.petropia.spacelifeCore.player;
 
-import de.petropia.spacelifeCore.SpacelifeCore;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.IndexOptions;
@@ -11,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class SpacelifePlayer {
     @Indexed(options = @IndexOptions(unique = true))
     private String uuid;
     private double money;
-    private Map<Integer, Map<String, Object>> inventory;//First Map for Slots, second for serialized Item
+    private Map<Integer, String> inventory;//Key for inv slot, String as base64 byte[] for serialized Item
 
     /**
      * This Construtor is for manuel first time player creation
@@ -90,7 +90,7 @@ public class SpacelifePlayer {
      * Saves player inventory and clears it
      */
     public void saveInventory(){
-        Map<Integer, Map<String, Object>> newInventory = new HashMap<>();
+        Map<Integer, String> newInventory = new HashMap<>();
         Player player = Bukkit.getPlayer(UUID.fromString(uuid));
         if(player == null){
             return;
@@ -100,11 +100,10 @@ public class SpacelifePlayer {
             if(item == null){
                continue;
             }
-            newInventory.put(i, item.serialize());
+            newInventory.put(i, toBase64(item.serializeAsBytes()));
         }
         player.getInventory().clear();
         if(newInventory.equals(inventory)){
-            SpacelifeCore.getInstance().getMessageUtil().showDebugMessage("Nothing changed!");
             return;
         }
         inventory = newInventory;
@@ -123,13 +122,13 @@ public class SpacelifePlayer {
             return;
         }
         player.getInventory().clear();
-        for(Map.Entry<Integer, Map<String, Object>> indexEntry : inventory.entrySet()){
+        for(Map.Entry<Integer, String> indexEntry : inventory.entrySet()){
             int index = indexEntry.getKey();
             if(indexEntry.getValue() == null){
                 player.getInventory().setItem(index, new ItemStack(Material.AIR));
                 continue;
             }
-            player.getInventory().setItem(index, ItemStack.deserialize(indexEntry.getValue()));
+            player.getInventory().setItem(index, ItemStack.deserializeBytes(fromBase64(indexEntry.getValue())));
         }
     }
 
@@ -142,6 +141,14 @@ public class SpacelifePlayer {
      */
     private void save(){
         SpacelifePlayerDatabase.getInstance().save(this);
+    }
+
+    private String toBase64(byte[] bytes){
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private byte[] fromBase64(String base64){
+        return Base64.getDecoder().decode(base64);
     }
 
 }
