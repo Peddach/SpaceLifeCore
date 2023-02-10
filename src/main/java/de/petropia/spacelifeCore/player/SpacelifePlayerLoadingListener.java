@@ -41,6 +41,9 @@ public class SpacelifePlayerLoadingListener implements Listener {
         SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         player.loadInventory();
         CrossServerLocation target = player.getTargetLocation();
+        if(target == null){
+            return;
+        }
         if(!target.getServer().equalsIgnoreCase(TurtleServer.getInstance().getCloudNetAdapter().getServerInstanceName())){
             return;
         }
@@ -52,7 +55,10 @@ public class SpacelifePlayerLoadingListener implements Listener {
     public void onPlayerLeave(PlayerQuitEvent event){
         SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         if(!INV_SAVE_BLOCK.contains(event.getPlayer())){
-            player.saveInventory();
+            player.saveInventory().exceptionally(e -> {
+                e.printStackTrace();
+                return null;
+            });
             INV_SAVE_BLOCK.remove(event.getPlayer());
         }
         SpacelifePlayerDatabase.getInstance().uncachePlayer(player);

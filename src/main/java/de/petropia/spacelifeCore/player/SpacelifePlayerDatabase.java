@@ -9,9 +9,12 @@ import de.petropia.spacelifeCore.SpacelifeCore;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.experimental.filters.Filters;
+import net.kyori.adventure.text.Component;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
@@ -53,9 +56,18 @@ public class SpacelifePlayerDatabase {
     @ApiStatus.Internal
     protected CompletableFuture<Void> save(final SpacelifePlayer player){
         return CompletableFuture.supplyAsync(() -> {
-            datastore.merge(player);
+            datastore.save(player);
             return null;
         });
+    }
+
+    public void deleteFromDB(SpacelifePlayer player){
+        Player bukkitPlayer = Bukkit.getPlayer(player.getUUID());
+        if(bukkitPlayer != null){
+            SpacelifePlayerLoadingListener.blockInvSave(bukkitPlayer);
+            bukkitPlayer.kick(Component.text("Dein Profil wurde gelöscht!"));
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(SpacelifeCore.getInstance(), () -> datastore.delete(player));
     }
 
     /**

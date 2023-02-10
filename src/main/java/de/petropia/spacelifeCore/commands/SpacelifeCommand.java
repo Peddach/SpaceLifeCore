@@ -1,5 +1,8 @@
 package de.petropia.spacelifeCore.commands;
 
+import de.dytanic.cloudnet.driver.CloudNetDriver;
+import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
+import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
@@ -22,6 +25,10 @@ public class SpacelifeCommand implements CommandExecutor {
         }
         if(args[0].equalsIgnoreCase("debug") && sender.hasPermission("spacelife.command.spacelife.debug")){
             debugSubcommand(sender, args);
+            return true;
+        }
+        if(args[0].equalsIgnoreCase("jump") && sender.hasPermission("spacelife.command.spacelife.jump")){
+            jumpSubcommand(sender, args);
             return true;
         }
         return false;
@@ -74,6 +81,25 @@ public class SpacelifeCommand implements CommandExecutor {
         if(sender.hasPermission("spacelife.command.spacelife.debug")){
             helpMessage(sender, "debug", "Hilft beim debuggen");
         }
+        if(sender.hasPermission("spacelife.command.spacelife.jump")){
+            helpMessage(sender, "jump", "Springe einem Spieler auf SL hinterher");
+        }
+    }
+
+    private void jumpSubcommand(CommandSender sender, String[] args){
+        if(args.length != 2){
+            helpMessage(sender, "jump [Spieler]", "Springe zu einem Spieler");
+        }
+        if(!(sender instanceof Player bukkitPlayer)){
+            return;
+        }
+        ICloudPlayer player =  CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getFirstOnlinePlayer(args[1]);
+        if(player == null){
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(sender, Component.text("Der Spieler ist nicht online", NamedTextColor.RED));
+            return;
+        }
+        CrossServerLocation location = new CrossServerLocation(player.getUniqueId().toString());
+        SpacelifePlayerDatabase.getInstance().getCachedPlayer(bukkitPlayer.getUniqueId()).teleportCrossServer(location);
     }
 
     private void helpMessage(CommandSender sender, String subcommand, String description){

@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,6 +24,13 @@ public class CrossServerMessageListener {
            }
            ICloudPlayer cloudPlayer = CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getOnlinePlayer(UUID.fromString(location.getPlayerUUID()));
            if (cloudPlayer == null) {
+               return null;
+           }
+           if(cloudPlayer.getConnectedService() == null){
+               return null;
+           }
+           List<String> groups = List.of(cloudPlayer.getConnectedService().getGroups());
+           if(!groups.contains("SpaceLife")){
                return null;
            }
            ChannelMessage response = ChannelMessage.builder()
