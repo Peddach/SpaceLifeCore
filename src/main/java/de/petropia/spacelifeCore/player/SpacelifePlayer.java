@@ -14,11 +14,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Entity(value = "spacelifePlayers")
@@ -32,6 +35,7 @@ public class SpacelifePlayer {
     private float xpPoints;
     private int food;
     private Map<Integer, String> inventory;//Key for inv slot, String as base64 byte[] for serialized Item
+    private List<String> potions;
     private CrossServerLocation targetLocation;
     @Transient
     private int autoSaveTaskID = -1;
@@ -125,7 +129,7 @@ public class SpacelifePlayer {
      * Saves also:
      * - XP
      */
-    public CompletableFuture<Void> saveInventory() {
+    public CompletableFuture<Void> saveInventory(){
         Player player = Bukkit.getPlayer(UUID.fromString(uuid));
         if (player == null) {
             return CompletableFuture.supplyAsync(() -> {
@@ -135,6 +139,7 @@ public class SpacelifePlayer {
         int xpLevel = player.getLevel();
         float xpPoints = player.getExp();
         int food = player.getFoodLevel();
+        List<String> potions = new ArrayList<>();
         Map<Integer, String> newInventory = new HashMap<>();
         for (int i = 0; i < player.getInventory().getContents().length; i++) {
             ItemStack item = player.getInventory().getContents()[i];
@@ -143,26 +148,41 @@ public class SpacelifePlayer {
             }
             newInventory.put(i, toBase64(item.serializeAsBytes()));
         }
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
+                dataOutput.writeObject(effect);
+                potions.add(toBase64(outputStream.toByteArray()));
+                player.removePotionEffect(effect.getType());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         player.getInventory().clear();
         if (newInventory.equals(inventory)  //prevent saving unchanged data
                 && this.xpLevel == xpLevel
                 && this.xpPoints == xpPoints
-                && this.food == food) {
+                && this.food == food
+                && potions.equals(this.potions)) {
             return CompletableFuture.supplyAsync(() -> null);
         }
         this.xpLevel = xpLevel;
         this.xpPoints = xpPoints;
         this.food = food;
-        if(newInventory.size() == 0){
+        if (newInventory.size() == 0) {
             inventory = null;
         } else {
             inventory = newInventory;
+        }
+        if (potions.size() == 0) {
+            this.potions = null;
+        } else {
+            this.potions = potions;
         }
         return save();
     }
 
     /**
-     * Clears a player's inventory and replaces it
+     * Clears a player's inventory and replaces it. Call only Sync
      */
     public void loadInventory() {
         Player player = Bukkit.getPlayer(UUID.fromString(uuid));
@@ -170,19 +190,29 @@ public class SpacelifePlayer {
             return;
         }
         player.getInventory().clear();
+        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
         player.setFoodLevel(food);
         player.setExp(xpPoints);
         player.setLevel(xpLevel);
-        if (inventory == null) {
-            return;
-        }
-        for (Map.Entry<Integer, String> indexEntry : inventory.entrySet()) {
-            int index = indexEntry.getKey();
-            if (indexEntry.getValue() == null) {
-                player.getInventory().setItem(index, new ItemStack(Material.AIR));
-                continue;
+        if (inventory != null) {
+            for (Map.Entry<Integer, String> indexEntry : inventory.entrySet()) {
+                int index = indexEntry.getKey();
+                if (indexEntry.getValue() == null) {
+                    player.getInventory().setItem(index, new ItemStack(Material.AIR));
+                    continue;
+                }
+                player.getInventory().setItem(index, ItemStack.deserializeBytes(fromBase64(indexEntry.getValue())));
             }
-            player.getInventory().setItem(index, ItemStack.deserializeBytes(fromBase64(indexEntry.getValue())));
+        }
+        if(potions != null){
+            for(String string : potions){
+                try(ByteArrayInputStream inputStream = new ByteArrayInputStream(fromBase64(string));BukkitObjectInputStream bukkitStream = new BukkitObjectInputStream(inputStream)){
+                    PotionEffect effect = (PotionEffect) bukkitStream.readObject();
+                    player.addPotionEffect(effect);
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -6,9 +6,12 @@ import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
+import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -31,7 +34,38 @@ public class SpacelifeCommand implements CommandExecutor {
             jumpSubcommand(sender, args);
             return true;
         }
+        if(args[0].equalsIgnoreCase("server") && sender.hasPermission("spacelife.command.spacelife.server")){
+            serverSubCommand(sender, args);
+            return true;
+        }
         return false;
+    }
+
+    private void serverSubCommand(CommandSender sender, String[] args){
+        if(args.length == 1){
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(sender, Component.text("Bitte gib einen Server an!", NamedTextColor.RED));
+            return;
+        }
+        if(args.length != 2){
+            return;
+        }
+        if(!(sender instanceof Player player)) {
+            return;
+        }
+        SpacelifePlayer spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(player.getUniqueId());
+        BlockAnyActionListener.blockPlayer(player);
+        SpacelifePlayerLoadingListener.blockInvSave(player);
+        spacelifePlayer.saveInventory().thenAccept(v -> {
+            Bukkit.getScheduler().runTaskLater(SpacelifeCore.getInstance(), () -> SpacelifeCore.getInstance().getCloudNetAdapter().sendPlayerToServer(player, args[1]), 20);
+            Bukkit.getScheduler().runTaskLater(SpacelifeCore.getInstance(), () -> {
+                if(player.isOnline()){
+                    player.kick(Component.text("Etwas ist schief gelaufen!", NamedTextColor.RED));
+                }
+            }, 5*20);
+        }).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     private void debugSubcommand(CommandSender sender, String[] args){
@@ -83,6 +117,9 @@ public class SpacelifeCommand implements CommandExecutor {
         }
         if(sender.hasPermission("spacelife.command.spacelife.jump")){
             helpMessage(sender, "jump", "Springe einem Spieler auf SL hinterher");
+        }
+        if(sender.hasPermission("spacelife.command.spacelife.server")){
+            helpMessage(sender, "server", "Teleportiere dich auf einen Server");
         }
     }
 
