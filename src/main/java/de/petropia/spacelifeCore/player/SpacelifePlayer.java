@@ -47,6 +47,8 @@ public class SpacelifePlayer {
      */
     public SpacelifePlayer(String uuid) {
         this.uuid = uuid;
+        this.food = 20;
+        save();
         autoSave();
     }
 

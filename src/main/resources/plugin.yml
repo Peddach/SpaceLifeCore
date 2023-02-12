@@ -13,4 +13,13 @@ permissions:
   spacelife.command.spacelife.debug:
     default: false
     description: "Grant access for debugging"
+  spacelife.command.spacelife.jump:
+    default: false
+    description: "Jump to another player"
+  spacelife.command.spacelife.server:
+    default: false
+    description: "Change the server"
+  spacelife.command.pay:
+    default: true
+    description: "Pay money to player"
 
