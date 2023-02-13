@@ -58,4 +58,8 @@ public class BlockAnyActionListener implements Listener {
     public static void blockPlayer(Player player){
         BLOCKED_PLAYERS.add(player);
     }
+
+    public static boolean isPlayerBlocked(Player player){
+        return (BLOCKED_PLAYERS.contains(player));
+    }
 }

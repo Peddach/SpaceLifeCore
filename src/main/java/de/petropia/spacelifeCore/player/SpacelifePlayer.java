@@ -238,15 +238,18 @@ public class SpacelifePlayer {
     public CompletableFuture<Boolean> teleportCrossServer(CrossServerLocation location) {
         final Player bukkitPlayer = Bukkit.getPlayer(UUID.fromString(uuid));
         return CompletableFuture.supplyAsync(() -> {
+            if (bukkitPlayer == null) {
+                return false;
+            }
+            if(BlockAnyActionListener.isPlayerBlocked(bukkitPlayer)){
+                return false;
+            }
             this.targetLocation = location;
             if (targetLocation.getPlayerUUID() != null || !targetLocation.getPlayerUUID().isEmpty()) {
                 if (targetLocation.getPlayerUUID().equalsIgnoreCase(uuid)) {
                     return null;
                 }
                 targetLocation = CrossServerMessageListener.getForPlayer(location).join();
-            }
-            if (bukkitPlayer == null) {
-                return false;
             }
             if (targetLocation == null) {
                 return false;
