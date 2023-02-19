@@ -84,6 +84,7 @@ public class SpacelifePlayer {
      */
     public void addMoney(double money) {
         this.money += money;
+        this.money = Math.round(this.money * 100.0) / 100.0;
         save();
     }
 
@@ -98,6 +99,7 @@ public class SpacelifePlayer {
             return false;
         }
         this.money -= money;
+        this.money = Math.round(this.money * 100.0) / 100.0;
         save();
         return true;
     }

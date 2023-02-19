@@ -104,6 +104,9 @@ public class SpacelifePlayerDatabase {
      */
     public CompletableFuture<SpacelifePlayer> getSpacelifePlayer(UUID uuid){
         return CompletableFuture.supplyAsync(() -> {
+            if(spacelifePlayerCache.get(uuid) != null){
+                return spacelifePlayerCache.get(uuid);
+            }
             Optional<SpacelifePlayer> playerOptional = datastore.find(SpacelifePlayer.class).filter(Filters.eq("uuid", uuid.toString())).stream().findFirst();
             return playerOptional.orElse(null);
         });

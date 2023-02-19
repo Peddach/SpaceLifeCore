@@ -2,6 +2,8 @@ package de.petropia.spacelifeCore;
 
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.petropia.spacelifeCore.commands.SpacelifeCommand;
+import de.petropia.spacelifeCore.economy.BalanceCommand;
+import de.petropia.spacelifeCore.economy.PayCommand;
 import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
@@ -26,10 +28,13 @@ public class SpacelifeCore extends PetropiaPlugin {
         pluginManager.registerEvents(new SpacelifePlayerLoadingListener(), instance);
         pluginManager.registerEvents(new BlockAnyActionListener(), instance);
         CloudNetDriver.getInstance().getEventManager().registerListener(new CrossServerMessageListener());
+        CloudNetDriver.getInstance().getEventManager().registerListener(new PayCommand());
     }
 
     private void registerCommands(){
         getCommand("spacelife").setExecutor(new SpacelifeCommand());
+        getCommand("pay").setExecutor(new PayCommand());
+        getCommand("balance").setExecutor(new BalanceCommand());
     }
 
     /**

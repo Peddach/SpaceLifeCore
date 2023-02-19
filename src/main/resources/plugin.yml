@@ -9,6 +9,13 @@ commands:
   spacelife:
     description: "Main admin command"
     aliases: "sl"
+  pay:
+    description: "Pay money to a player"
+  balance:
+    description: "Show your balance"
+    aliases:
+      - "kontostand"
+      - "money"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -22,4 +29,9 @@ permissions:
   spacelife.command.pay:
     default: true
     description: "Pay money to player"
+  spacelife.command.balance.self:
+    description: "View your own balance"
+    default: true
+  spacelife.command.balance.other:
+    description: "Show balance of others"
 
