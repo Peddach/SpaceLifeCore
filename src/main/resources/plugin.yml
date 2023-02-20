@@ -16,6 +16,8 @@ commands:
     aliases:
       - "kontostand"
       - "money"
+  spawn:
+    description: "teleport to spawn"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -34,4 +36,7 @@ permissions:
     default: true
   spacelife.command.balance.other:
     description: "Show balance of others"
+  spacelife.command.spawn:
+    description: "teleport to spawn"
+    default: true
 

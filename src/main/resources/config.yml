@@ -4,3 +4,12 @@ Mongo:
   User: Spacelife
   Database: Spacelife
   Password: password
+teleportPoints:
+  spawn:
+    server: "SL_Spawn-1"
+    world: "world"
+    x: -2.5
+    y: 66
+    z: 10.5
+    yaw: -176
+    pitch: -5

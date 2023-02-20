@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bson.types.ObjectId;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -237,6 +238,11 @@ public class SpacelifePlayer {
         }));
     }
 
+    /**
+     * Teleport a player across spacelife servers. Please use this only for cross server teleportation!
+     * @param location Location to teleport
+     * @return Completeable future with boolean. true -> success
+     */
     public CompletableFuture<Boolean> teleportCrossServer(CrossServerLocation location) {
         final Player bukkitPlayer = Bukkit.getPlayer(UUID.fromString(uuid));
         return CompletableFuture.supplyAsync(() -> {
@@ -247,7 +253,7 @@ public class SpacelifePlayer {
                 return false;
             }
             this.targetLocation = location;
-            if (targetLocation.getPlayerUUID() != null || !targetLocation.getPlayerUUID().isEmpty()) {
+            if (targetLocation.getPlayerUUID() != null && !targetLocation.getPlayerUUID().isEmpty()) {
                 if (targetLocation.getPlayerUUID().equalsIgnoreCase(uuid)) {
                     return null;
                 }
@@ -257,7 +263,18 @@ public class SpacelifePlayer {
                 return false;
             }
             if (targetLocation.getServer() == null || targetLocation.getServer().isEmpty()) {
+                targetLocation = null;
                 return false;
+            }
+            if(CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(targetLocation.getServer()) == null){
+                targetLocation = null;
+                return false;
+            }
+            if(SpacelifeCore.getInstance().getCloudNetAdapter().getServerInstanceName().equalsIgnoreCase(location.getServer())){
+                Location localLocation = new Location(Bukkit.getWorld(targetLocation.getWorld()), targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), targetLocation.getYaw(), targetLocation.getPitch());
+                Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> bukkitPlayer.teleport(localLocation));
+                targetLocation = null;
+                return true;
             }
             SpacelifePlayerLoadingListener.blockInvSave(bukkitPlayer);
             saveInventory().join();

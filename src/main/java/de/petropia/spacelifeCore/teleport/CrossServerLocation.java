@@ -114,4 +114,16 @@ public class CrossServerLocation {
     public void setWorld(String world){
         this.world = world;
     }
+
+    @Override
+    public String toString() {
+        return "X: " + x +
+                "Y: " + y +
+                "Z: " + z +
+                "Yaw: " + yaw +
+                "Pitch: " + pitch +
+                "Server: " + server +
+                "World: " + world +
+                "UUID: " + playerUUID;
+    }
 }
