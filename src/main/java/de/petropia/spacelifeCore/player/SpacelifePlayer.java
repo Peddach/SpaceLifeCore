@@ -3,6 +3,7 @@ package de.petropia.spacelifeCore.player;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
+import de.petropia.spacelifeCore.home.Home;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import de.petropia.spacelifeCore.teleport.CrossServerMessageListener;
@@ -37,6 +38,7 @@ public class SpacelifePlayer {
     private int food;
     private Map<Integer, String> inventory;//Key for inv slot, String as base64 byte[] for serialized Item
     private List<String> potions;
+    private List<Home> homes;
     private CrossServerLocation targetLocation;
     @Transient
     private int autoSaveTaskID = -1;
@@ -296,6 +298,43 @@ public class SpacelifePlayer {
 
     public void setTargetLocation(CrossServerLocation location) {
         this.targetLocation = location;
+        save();
+    }
+
+    public List<Home> getHomes(){
+        if(homes == null){
+            this.homes = new ArrayList<>();
+        }
+        return homes;
+    }
+
+    public void addHome(Home home){
+        if(this.homes == null){
+            this.homes = new ArrayList<>();
+        }
+        homes.add(home);
+        save();
+    }
+
+    public void removeHome(Home home){
+        if(homes != null){
+            homes.remove(home);
+            save();
+        }
+    }
+
+    public void updateHome(Home oldHome, Home newHome){
+        if(oldHome.equals(newHome)){
+            return;
+        }
+        if(homes == null){
+            return;
+        }
+        int index = homes.indexOf(oldHome);
+        if(index == -1){
+            return;
+        }
+        homes.set(index, newHome);
         save();
     }
 

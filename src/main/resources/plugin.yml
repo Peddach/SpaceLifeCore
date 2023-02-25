@@ -11,6 +11,8 @@ commands:
     aliases: "sl"
   pay:
     description: "Pay money to a player"
+  home:
+    description: "Show players homes"
   balance:
     description: "Show your balance"
     aliases:
@@ -38,5 +40,14 @@ permissions:
     description: "Show balance of others"
   spacelife.command.spawn:
     description: "teleport to spawn"
+    default: true
+  spacelife.homes.5:
+    description: "Allow 5 homes"
+    default: false
+  spacelife.homes.3:
+    description: "Allow 3 homes"
+    default: false
+  spacelife.homes.2:
+    description: "Allow 2 homes"
     default: true
 

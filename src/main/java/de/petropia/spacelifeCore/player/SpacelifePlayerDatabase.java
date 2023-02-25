@@ -8,7 +8,7 @@ import com.mongodb.client.MongoClients;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import net.kyori.adventure.text.Component;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;

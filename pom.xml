@@ -20,7 +20,7 @@
             <url>https://repo.cloudnetservice.eu/repository/releases/</url>
         </repository>
         <repository>
-            <id>Petropia-releases</id>
+            <id>petropia</id>
             <name>Petropia Maven Repo</name>
             <url>https://repo.petropia.de/releases</url>
         </repository>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>de.petropia</groupId>
             <artifactId>TurtleServer</artifactId>
-            <version>1.1.7</version>
+            <version>1.1.8</version>
         </dependency>
         <dependency>
             <groupId>de.dytanic.cloudnet</groupId>
