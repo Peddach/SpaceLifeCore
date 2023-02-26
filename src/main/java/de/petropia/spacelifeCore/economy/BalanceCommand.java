@@ -17,7 +17,7 @@ import java.util.UUID;
 public class BalanceCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("spacelife.command.balence")) {
+        if (!sender.hasPermission("spacelife.command.balance")) {
             return false;
         }
         if (!(sender instanceof Player player)) {
@@ -36,11 +36,9 @@ public class BalanceCommand implements CommandExecutor {
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Spieler wurde nicht gefunden!"));
                 return;
             }
-            SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).thenAccept(target -> {
-                SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(petropiaPlayer.getUserName(), NamedTextColor.GOLD)
-                        .append(Component.text(" hat einen Kontostand von ", NamedTextColor.GRAY))
-                        .append(Component.text(target.getMoney() + "$")));
-            });
+            SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).thenAccept(target -> SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(petropiaPlayer.getUserName(), NamedTextColor.GOLD)
+                    .append(Component.text(" hat einen Kontostand von ", NamedTextColor.GRAY))
+                    .append(Component.text(target.getMoney() + "$"))));
         });
         return false;
     }
