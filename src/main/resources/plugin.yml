@@ -20,6 +20,12 @@ commands:
       - "money"
   spawn:
     description: "teleport to spawn"
+  workbench:
+    description: "Open a workbench"
+    aliases:
+      - "w"
+      - "craft"
+      - "werkbank"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -41,6 +47,9 @@ permissions:
   spacelife.command.spawn:
     description: "teleport to spawn"
     default: true
+  spacelife.command.workbench:
+    description: "Open a workbench"
+    default: false
   spacelife.homes.5:
     description: "Allow 5 homes"
     default: false
