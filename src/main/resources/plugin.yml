@@ -18,6 +18,10 @@ commands:
     aliases:
       - "kontostand"
       - "money"
+  trash:
+    description: "Throw items in the trash"
+    aliases:
+      - "müll"
   spawn:
     description: "teleport to spawn"
   workbench:
@@ -63,4 +67,6 @@ permissions:
     default: true
   spacelife.command.tpa:
     description: "Tpa"
+    default: true
+  spacelife.command.trash:
     default: true

@@ -3,6 +3,7 @@ package de.petropia.spacelifeCore;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.petropia.spacelifeCore.commands.SpacelifeCommand;
 import de.petropia.spacelifeCore.commands.SpawnCommand;
+import de.petropia.spacelifeCore.commands.TrashCommand;
 import de.petropia.spacelifeCore.commands.WorkbenchCommand;
 import de.petropia.spacelifeCore.economy.BalanceCommand;
 import de.petropia.spacelifeCore.economy.PayCommand;
@@ -44,6 +45,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         getCommand("home").setExecutor(new HomeCommand());
         getCommand("workbench").setExecutor(new WorkbenchCommand());
         getCommand("tpa").setExecutor(new TpaCommand());
+        getCommand("trash").setExecutor(new TrashCommand());
     }
 
     /**
