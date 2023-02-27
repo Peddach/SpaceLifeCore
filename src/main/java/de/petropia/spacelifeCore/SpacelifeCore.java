@@ -11,6 +11,7 @@ import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerMessageListener;
+import de.petropia.spacelifeCore.teleport.TpaCommand;
 import de.petropia.turtleServer.api.PetropiaPlugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -32,6 +33,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         pluginManager.registerEvents(new BlockAnyActionListener(), instance);
         CloudNetDriver.getInstance().getEventManager().registerListener(new CrossServerMessageListener());
         CloudNetDriver.getInstance().getEventManager().registerListener(new PayCommand());
+        CloudNetDriver.getInstance().getEventManager().registerListener(new TpaCommand());
     }
 
     private void registerCommands(){
@@ -41,6 +43,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         getCommand("spawn").setExecutor(new SpawnCommand());
         getCommand("home").setExecutor(new HomeCommand());
         getCommand("workbench").setExecutor(new WorkbenchCommand());
+        getCommand("tpa").setExecutor(new TpaCommand());
     }
 
     /**

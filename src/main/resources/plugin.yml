@@ -26,6 +26,8 @@ commands:
       - "w"
       - "craft"
       - "werkbank"
+  tpa:
+    description: "Teleport to a player"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -59,4 +61,6 @@ permissions:
   spacelife.homes.2:
     description: "Allow 2 homes"
     default: true
-
+  spacelife.command.tpa:
+    description: "Tpa"
+    default: true
