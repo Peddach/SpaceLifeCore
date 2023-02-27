@@ -323,18 +323,23 @@ public class SpacelifePlayer {
         }
     }
 
-    public void updateHome(Home oldHome, Home newHome){
-        if(oldHome.equals(newHome)){
-            return;
-        }
+    public void updateHome(Home home){
         if(homes == null){
             return;
         }
-        int index = homes.indexOf(oldHome);
-        if(index == -1){
+        Home oldHome = null;
+        for(Home i : homes){
+            if(i.getUuid().equals(home.getUuid())){
+                oldHome = i;
+            }
+        }
+        if(oldHome == null){
             return;
         }
-        homes.set(index, newHome);
+        if(oldHome.equals(home)){
+            return;
+        }
+        homes.set(homes.indexOf(oldHome), home);
         save();
     }
 

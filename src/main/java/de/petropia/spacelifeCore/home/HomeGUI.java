@@ -18,6 +18,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemFlag;
 
 import java.util.List;
+import java.util.UUID;
 
 public class HomeGUI {
     private final Player viewer;
@@ -77,12 +78,13 @@ public class HomeGUI {
                 .append(Component.text("Bearbeiten", NamedTextColor.GREEN));
         return ItemBuilder.from(home.getMaterial())
                 .name(name)
+                .lore(List::clear)
                 .lore(
                         Component.empty(),
                         descriptionLeftClick,
                         descriptionRightClick,
                         Component.empty())
-                .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE)
+                .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE, ItemFlag.HIDE_POTION_EFFECTS)
                 .asGuiItem(clickEvent -> {
                    clickEvent.setCancelled(true);
                    if(clickEvent.isLeftClick()){
@@ -135,6 +137,7 @@ public class HomeGUI {
         Home home = new Home();
         home.setLocation(location);
         home.setName(name);
+        home.setUuid(UUID.randomUUID().toString());
         if(viewer.getInventory().getItemInMainHand().getType() != Material.AIR){
             home.setMaterial(viewer.getInventory().getItemInMainHand().getType().name());
         }

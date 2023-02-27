@@ -16,20 +16,16 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 
-public class HomeEditGUI {
+import java.util.List;
 
-    private final Home oldHome;
+public class HomeEditGUI {
     private final Home home;
     private final SpacelifePlayer spacelifePlayer;
     private final Player viewer;
     private Gui gui;
 
     public HomeEditGUI(Player viewer, Home home){
-        this.home = new Home();
-        this.home.setMaterial(home.getMaterial().name());
-        this.home.setName(home.getName());
-        this.home.setLocation(home.getLocation());
-        this.oldHome = home;
+        this.home = home;
         this.viewer = viewer;
         this.spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(viewer.getUniqueId());
         if(spacelifePlayer == null){
@@ -52,8 +48,9 @@ public class HomeEditGUI {
     private GuiItem createHomeItem(){
         Component name = Component.text(home.getName()).color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
         return ItemBuilder.from(home.getMaterial())
-                .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE)
+                .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE, ItemFlag.HIDE_POTION_EFFECTS)
                 .name(name)
+                .lore(List::clear)
                 .lore(Component.empty())
                 .asGuiItem();
     }
@@ -69,7 +66,7 @@ public class HomeEditGUI {
                         Component.empty())
                 .asGuiItem(event -> {
                     event.setCancelled(true);
-                    spacelifePlayer.removeHome(oldHome);
+                    spacelifePlayer.removeHome(home);
                     new HomeGUI(viewer);
                 });
     }
@@ -85,7 +82,7 @@ public class HomeEditGUI {
                         Component.empty())
                 .flags(ItemFlag.HIDE_ATTRIBUTES)
                 .asGuiItem(event -> {
-                    spacelifePlayer.updateHome(oldHome, home);
+                    spacelifePlayer.updateHome(home);
                     new HomeGUI(viewer);
                 });
     }

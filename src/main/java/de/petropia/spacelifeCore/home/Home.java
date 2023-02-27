@@ -7,6 +7,7 @@ import org.bukkit.Material;
 @Entity
 public class Home {
 
+    private String uuid;
     private CrossServerLocation location;
     private String name;
     private String material;
@@ -39,6 +40,9 @@ public class Home {
     public CrossServerLocation getLocation() {
         return location;
     }
+    public String getUuid(){
+        return uuid;
+    }
 
     public void setLocation(CrossServerLocation location) {
         this.location = location;
@@ -48,8 +52,31 @@ public class Home {
         this.name = name;
     }
 
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
     public void setMaterial(String material) {
         this.material = material;
     }
 
+    @Override
+    public boolean equals(Object that) {
+        if (that == null) {
+            return false;
+        }
+        if (!(that instanceof Home thatHome)) {
+            return false;
+        }
+        if(!thatHome.getUuid().equals(uuid)){
+            return false;
+        }
+        if (!thatHome.getName().equals(name)) {
+            return false;
+        }
+        if (!thatHome.getLocation().equals(location)) {
+            return false;
+        }
+        return thatHome.getMaterial().name().equals(material);
+    }
 }
