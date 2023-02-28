@@ -25,7 +25,11 @@ public class HomeEditGUI {
     private Gui gui;
 
     public HomeEditGUI(Player viewer, Home home){
-        this.home = home;
+        this.home = new Home();
+        this.home.setName(home.getName());
+        this.home.setMaterial(home.getMaterial().name());
+        this.home.setLocation(home.getLocation());
+        this.home.setUuid(home.getUuid());
         this.viewer = viewer;
         this.spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(viewer.getUniqueId());
         if(spacelifePlayer == null){
