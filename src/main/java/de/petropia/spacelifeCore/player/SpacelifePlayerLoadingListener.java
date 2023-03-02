@@ -38,6 +38,7 @@ public class SpacelifePlayerLoadingListener implements Listener {
 
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event){
+        event.joinMessage(null);
         SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         player.loadInventory();
         CrossServerLocation target = player.getTargetLocation();
@@ -53,6 +54,7 @@ public class SpacelifePlayerLoadingListener implements Listener {
 
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event){
+        event.quitMessage(null);
         SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         if(!INV_SAVE_BLOCK.contains(event.getPlayer())){
             player.saveInventory().exceptionally(e -> {
