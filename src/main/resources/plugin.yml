@@ -32,6 +32,10 @@ commands:
       - "werkbank"
   tpa:
     description: "Teleport to a player"
+  enderchest:
+    description: "Opens your personal enderchests"
+    aliases:
+      - "ec"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -70,3 +74,15 @@ permissions:
     default: true
   spacelife.command.trash:
     default: true
+  spacelife.enderchest.standard:
+    default: true
+  spacelife.enderchest.premium:
+    default: false
+  spacelife.enderchest.premiumplus:
+    default: false
+  spacelife.command.enderchest.self:
+    description: "View your own enderchest"
+    default: false
+  spacelife.command.enderchest.other:
+    default: false
+    description: "View the enderchest of someone else"

@@ -37,6 +37,7 @@ public class SpacelifePlayer {
     private float xpPoints;
     private int food;
     private Map<Integer, String> inventory;//Key for inv slot, String as base64 byte[] for serialized Item
+    private Map<Integer, Map<Integer, String>> enderchests; //First int = enderchest number, //second map -> int = inv slot, String Itms as base64
     private List<String> potions;
     private List<Home> homes;
     private CrossServerLocation targetLocation;
@@ -136,7 +137,7 @@ public class SpacelifePlayer {
      * Saves also:
      * - XP
      */
-    public CompletableFuture<Void> saveInventory(){
+    public CompletableFuture<Void> saveInventory() {
         Player player = Bukkit.getPlayer(UUID.fromString(uuid));
         if (player == null) {
             return CompletableFuture.supplyAsync(() -> {
@@ -211,9 +212,9 @@ public class SpacelifePlayer {
                 player.getInventory().setItem(index, ItemStack.deserializeBytes(fromBase64(indexEntry.getValue())));
             }
         }
-        if(potions != null){
-            for(String string : potions){
-                try(ByteArrayInputStream inputStream = new ByteArrayInputStream(fromBase64(string));BukkitObjectInputStream bukkitStream = new BukkitObjectInputStream(inputStream)){
+        if (potions != null) {
+            for (String string : potions) {
+                try (ByteArrayInputStream inputStream = new ByteArrayInputStream(fromBase64(string)); BukkitObjectInputStream bukkitStream = new BukkitObjectInputStream(inputStream)) {
                     PotionEffect effect = (PotionEffect) bukkitStream.readObject();
                     player.addPotionEffect(effect);
                 } catch (IOException | ClassNotFoundException e) {
@@ -231,6 +232,9 @@ public class SpacelifePlayer {
         inventory = null;
         xpLevel = 0;
         xpPoints = 0;
+        homes = null;
+        enderchests = null;
+        targetLocation = null;
         food = 20;
         save().thenAccept(v -> Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> {
             Player player = Bukkit.getPlayer(uuid);
@@ -242,6 +246,7 @@ public class SpacelifePlayer {
 
     /**
      * Teleport a player across spacelife servers. Please use this only for cross server teleportation!
+     *
      * @param location Location to teleport
      * @return Completeable future with boolean. true -> success
      */
@@ -251,7 +256,7 @@ public class SpacelifePlayer {
             if (bukkitPlayer == null) {
                 return false;
             }
-            if(BlockAnyActionListener.isPlayerBlocked(bukkitPlayer)){
+            if (BlockAnyActionListener.isPlayerBlocked(bukkitPlayer)) {
                 return false;
             }
             this.targetLocation = location;
@@ -268,11 +273,11 @@ public class SpacelifePlayer {
                 targetLocation = null;
                 return false;
             }
-            if(CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(targetLocation.getServer()) == null){
+            if (CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(targetLocation.getServer()) == null) {
                 targetLocation = null;
                 return false;
             }
-            if(SpacelifeCore.getInstance().getCloudNetAdapter().getServerInstanceName().equalsIgnoreCase(location.getServer())){
+            if (SpacelifeCore.getInstance().getCloudNetAdapter().getServerInstanceName().equalsIgnoreCase(location.getServer())) {
                 Location localLocation = new Location(Bukkit.getWorld(targetLocation.getWorld()), targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), targetLocation.getYaw(), targetLocation.getPitch());
                 Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> bukkitPlayer.teleport(localLocation));
                 targetLocation = null;
@@ -301,42 +306,72 @@ public class SpacelifePlayer {
         save();
     }
 
-    public List<Home> getHomes(){
-        if(homes == null){
+    /**
+     * Get the enderchest for the according index. Index starts at 0.
+     * 0 -> standard
+     * 1 -> premium
+     * 2 -> premium+
+     * @param index index of chest
+     * @return A map with int (inventory slot) as key and string (base64 of serialized item) as value
+     */
+    public Map<Integer, String> getEnderchest(int index){
+        if(enderchests == null){
+            return new HashMap<>();
+        }
+        var chest = enderchests.get(index);
+        if(chest == null){
+            return new HashMap<>();
+        }
+        return new HashMap<>(chest);
+    }
+
+    public void setEnderchest(int index, Map<Integer, String> map){
+        if(getEnderchest(index).equals(map)){
+            return;
+        }
+        if(enderchests == null){
+            enderchests = new HashMap<>();
+        }
+        enderchests.put(index, map);
+        save();
+    }
+
+    public List<Home> getHomes() {
+        if (homes == null) {
             this.homes = new ArrayList<>();
         }
         return homes;
     }
 
-    public void addHome(Home home){
-        if(this.homes == null){
+    public void addHome(Home home) {
+        if (this.homes == null) {
             this.homes = new ArrayList<>();
         }
         homes.add(home);
         save();
     }
 
-    public void removeHome(Home home){
-        if(homes != null){
+    public void removeHome(Home home) {
+        if (homes != null) {
             homes.remove(home);
             save();
         }
     }
 
-    public void updateHome(Home home){
-        if(homes == null){
+    public void updateHome(Home home) {
+        if (homes == null) {
             return;
         }
         Home oldHome = null;
-        for(Home i : homes){
-            if(i.getUuid().equals(home.getUuid())){
+        for (Home i : homes) {
+            if (i.getUuid().equals(home.getUuid())) {
                 oldHome = i;
             }
         }
-        if(oldHome == null){
+        if (oldHome == null) {
             return;
         }
-        if(oldHome.equals(home)){
+        if (oldHome.equals(home)) {
             return;
         }
         homes.set(homes.indexOf(oldHome), home);
