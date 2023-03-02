@@ -24,7 +24,7 @@ public class EnderchestCommand implements CommandExecutor {
             return false;
         }
         if(args.length == 0){
-            new EnderchestGUI(player, player.getUniqueId(), true);
+            new EnderchestGUI(player, player.getUniqueId(), true, null);
         }
         if(args.length != 1) {
             return false;
@@ -37,7 +37,7 @@ public class EnderchestCommand implements CommandExecutor {
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Der Spieler wurde nicht gefunden", NamedTextColor.RED));
                 return;
             }
-            Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> new EnderchestGUI(player, UUID.fromString(petropiaPlayer.getUuid()), false));
+            Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> new EnderchestGUI(player, UUID.fromString(petropiaPlayer.getUuid()), false, null));
         }).exceptionally(e -> {
             e.printStackTrace();
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Es ist ein fehler aufgetreten!", NamedTextColor.RED));

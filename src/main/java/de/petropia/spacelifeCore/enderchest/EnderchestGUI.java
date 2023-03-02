@@ -26,7 +26,7 @@ public class EnderchestGUI {
     private SpacelifePlayer spacelifePlayer;
     private StorageGui gui;
 
-    public EnderchestGUI(Player viewer, UUID target, boolean editable) {
+    public EnderchestGUI(Player viewer, UUID target, boolean editable, Runnable onClose) {
         this.viewer = viewer;
         this.editable = editable;
         SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(target).thenAccept(fetchedPlayer -> Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> {
@@ -52,10 +52,15 @@ public class EnderchestGUI {
             gui.setItem(32, createDummyItem());
             gui.setItem(34, createDummyItem());
             gui.setItem(35, createDummyItem());
+            gui.setCloseGuiAction(action -> {
+                if(editable){
+                    saveChest();
+                }
+                if(onClose != null){
+                    onClose.run();
+                }
+            });
             renderChest();
-            if (editable) {
-                gui.setCloseGuiAction(e -> saveChest());
-            }
             gui.open(viewer);
         }));
 
