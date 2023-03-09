@@ -9,7 +9,7 @@ import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
 import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.turtleServer.server.TurtleServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -54,14 +54,14 @@ public class PayCommand implements CommandExecutor {
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Du musst jemand anderen Geld überweisen ;-D"));
             return false;
         }
-        SpacelifePlayer payer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(player.getUniqueId());
+        SpacelifePlayer payer = SpacelifeDatabase.getInstance().getCachedPlayer(player.getUniqueId());
         final double finalAmount = amount;
         TurtleServer.getMongoDBHandler().getPetropiaPlayerByUsername(args[0]).thenAccept(petropiaPlayer -> {
             if(petropiaPlayer == null){
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Der Spieler konnte nicht gefunden werden!", NamedTextColor.GRAY));
                 return;
             }
-            SpacelifePlayer target = SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).join();
+            SpacelifePlayer target = SpacelifeDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).join();
             if(!payer.subtractMoney(finalAmount)){
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Du hast nicht genügend Geld!"));
                 return;
@@ -111,7 +111,7 @@ public class PayCommand implements CommandExecutor {
         if(player == null){
             return;
         }
-        SpacelifePlayer target = SpacelifePlayerDatabase.getInstance().getCachedPlayer(uuid);
+        SpacelifePlayer target = SpacelifeDatabase.getInstance().getCachedPlayer(uuid);
         target.addMoney(amount);
         SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(payer, NamedTextColor.GOLD).append(Component.text(" hat dir ", NamedTextColor.GRAY).append(Component.text(amount + "$ ", NamedTextColor.GOLD).append(Component.text("überwiesen", NamedTextColor.GRAY)))));
         player.sendActionBar(Component.text("+", NamedTextColor.GREEN).decorate(TextDecoration.BOLD).append(Component.text(amount, NamedTextColor.GOLD).decorate(TextDecoration.BOLD)));

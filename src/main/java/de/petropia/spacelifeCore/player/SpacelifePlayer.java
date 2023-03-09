@@ -388,7 +388,7 @@ public class SpacelifePlayer {
      * @return CompletableFuture with void. Completed when saved
      */
     private CompletableFuture<Void> save() {
-        return SpacelifePlayerDatabase.getInstance().save(this);
+        return SpacelifeDatabase.getInstance().save(this);
     }
 
     private String toBase64(byte[] bytes) {

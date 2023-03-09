@@ -10,11 +10,12 @@ import de.petropia.spacelifeCore.economy.PayCommand;
 import de.petropia.spacelifeCore.enderchest.EnderchestCommand;
 import de.petropia.spacelifeCore.enderchest.EnderchestOpenListener;
 import de.petropia.spacelifeCore.home.HomeCommand;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerMessageListener;
 import de.petropia.spacelifeCore.teleport.TpaCommand;
+import de.petropia.spacelifeCore.warp.WarpCommand;
 import de.petropia.turtleServer.api.PetropiaPlugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -25,7 +26,7 @@ public class SpacelifeCore extends PetropiaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        new SpacelifePlayerDatabase();
+        new SpacelifeDatabase();
         registerListener();
         registerCommands();
     }
@@ -50,6 +51,8 @@ public class SpacelifeCore extends PetropiaPlugin {
         getCommand("tpa").setExecutor(new TpaCommand());
         getCommand("trash").setExecutor(new TrashCommand());
         getCommand("enderchest").setExecutor(new EnderchestCommand());
+        getCommand("warp").setExecutor(new WarpCommand());
+        getCommand("warp").setTabCompleter(new WarpCommand());
     }
 
     /**

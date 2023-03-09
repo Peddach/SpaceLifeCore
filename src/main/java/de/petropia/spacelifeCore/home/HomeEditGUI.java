@@ -1,7 +1,7 @@
 package de.petropia.spacelifeCore.home;
 
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import de.petropia.turtleServer.api.chatInput.ChatInputBuilder;
 import de.petropia.turtleServer.server.TurtleServer;
@@ -31,7 +31,7 @@ public class HomeEditGUI {
         this.home.setLocation(home.getLocation());
         this.home.setUuid(home.getUuid());
         this.viewer = viewer;
-        this.spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(viewer.getUniqueId());
+        this.spacelifePlayer = SpacelifeDatabase.getInstance().getCachedPlayer(viewer.getUniqueId());
         if(spacelifePlayer == null){
             return;
         }

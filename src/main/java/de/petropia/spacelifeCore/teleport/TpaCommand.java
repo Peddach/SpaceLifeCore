@@ -8,7 +8,7 @@ import de.dytanic.cloudnet.driver.event.events.channel.ChannelMessageReceiveEven
 import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -135,7 +135,7 @@ public class TpaCommand implements CommandExecutor {
             return;
         }
         SpacelifeCore.getInstance().getMessageUtil().sendMessage(requester, Component.text(targetName, NamedTextColor.GOLD).append(Component.text(" hat deine Teleportanfrage angenommen", NamedTextColor.GRAY)));
-        SpacelifePlayer spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(requester.getUniqueId());
+        SpacelifePlayer spacelifePlayer = SpacelifeDatabase.getInstance().getCachedPlayer(requester.getUniqueId());
         spacelifePlayer.teleportCrossServer(new CrossServerLocation(targetUUID));
     }
 

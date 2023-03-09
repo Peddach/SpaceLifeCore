@@ -2,7 +2,7 @@ package de.petropia.spacelifeCore.economy;
 
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.turtleServer.server.TurtleServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -24,7 +24,7 @@ public class BalanceCommand implements CommandExecutor {
             return false;
         }
         if (args.length == 0) {
-            SpacelifePlayer spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(player.getUniqueId());
+            SpacelifePlayer spacelifePlayer = SpacelifeDatabase.getInstance().getCachedPlayer(player.getUniqueId());
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Dein Kontostand beträgt: ", NamedTextColor.GRAY).append(Component.text(spacelifePlayer.getMoney() + "$", NamedTextColor.GOLD)));
             return true;
         }
@@ -36,7 +36,7 @@ public class BalanceCommand implements CommandExecutor {
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Spieler wurde nicht gefunden!"));
                 return;
             }
-            SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).thenAccept(target -> SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(petropiaPlayer.getUserName(), NamedTextColor.GOLD)
+            SpacelifeDatabase.getInstance().getSpacelifePlayer(UUID.fromString(petropiaPlayer.getUuid())).thenAccept(target -> SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(petropiaPlayer.getUserName(), NamedTextColor.GOLD)
                     .append(Component.text(" hat einen Kontostand von ", NamedTextColor.GRAY))
                     .append(Component.text(target.getMoney() + "$"))));
         });

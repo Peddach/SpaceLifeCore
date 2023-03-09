@@ -2,7 +2,7 @@ package de.petropia.spacelifeCore.home;
 
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import de.petropia.turtleServer.api.chatInput.ChatInputBuilder;
 import de.petropia.turtleServer.server.TurtleServer;
@@ -26,7 +26,7 @@ public class HomeGUI {
 
     public HomeGUI(Player player){
         this.viewer = player;
-        spacelifePlayer = SpacelifePlayerDatabase.getInstance().getCachedPlayer(player.getUniqueId());
+        spacelifePlayer = SpacelifeDatabase.getInstance().getCachedPlayer(player.getUniqueId());
         if(spacelifePlayer == null){
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(viewer, Component.text("Etwas ist schief gelaufen (SL_Player is null)", NamedTextColor.RED));
             return;

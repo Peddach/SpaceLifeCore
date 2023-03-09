@@ -2,7 +2,7 @@ package de.petropia.spacelifeCore.enderchest;
 
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
-import de.petropia.spacelifeCore.player.SpacelifePlayerDatabase;
+import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -29,7 +29,7 @@ public class EnderchestGUI {
     public EnderchestGUI(Player viewer, UUID target, boolean editable, Runnable onClose) {
         this.viewer = viewer;
         this.editable = editable;
-        SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(target).thenAccept(fetchedPlayer -> Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> {
+        SpacelifeDatabase.getInstance().getSpacelifePlayer(target).thenAccept(fetchedPlayer -> Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> {
             if (fetchedPlayer == null) {
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(viewer, Component.text("Profil nicht gefunden", NamedTextColor.RED));
                 return;

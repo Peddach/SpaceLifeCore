@@ -23,13 +23,13 @@ public class SpacelifePlayerLoadingListener implements Listener {
         if(event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED){
             return;
         }
-        SpacelifePlayerDatabase.getInstance().getSpacelifePlayer(event.getUniqueId()).thenAccept(spacelifePlayer -> {
+        SpacelifeDatabase.getInstance().getSpacelifePlayer(event.getUniqueId()).thenAccept(spacelifePlayer -> {
             if(spacelifePlayer == null){
                 spacelifePlayer = new SpacelifePlayer(event.getUniqueId().toString());
                 spacelifePlayer.setMoney(100);
                 SpacelifeCore.getInstance().getMessageUtil().showDebugMessage("New Player joined Spacelife: " + event.getUniqueId());
             }
-            SpacelifePlayerDatabase.getInstance().cachePlayer(spacelifePlayer);
+            SpacelifeDatabase.getInstance().cachePlayer(spacelifePlayer);
         }).exceptionally(throwable -> {
             throwable.printStackTrace();
             return null;
@@ -39,7 +39,7 @@ public class SpacelifePlayerLoadingListener implements Listener {
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event){
         event.joinMessage(null);
-        SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
+        SpacelifePlayer player = SpacelifeDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         player.loadInventory();
         CrossServerLocation target = player.getTargetLocation();
         if(target == null){
@@ -55,7 +55,7 @@ public class SpacelifePlayerLoadingListener implements Listener {
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event){
         event.quitMessage(null);
-        SpacelifePlayer player = SpacelifePlayerDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
+        SpacelifePlayer player = SpacelifeDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         if(!INV_SAVE_BLOCK.contains(event.getPlayer())){
             player.saveInventory().exceptionally(e -> {
                 e.printStackTrace();
@@ -63,7 +63,7 @@ public class SpacelifePlayerLoadingListener implements Listener {
             });
             INV_SAVE_BLOCK.remove(event.getPlayer());
         }
-        SpacelifePlayerDatabase.getInstance().uncachePlayer(player);
+        SpacelifeDatabase.getInstance().uncachePlayer(player);
     }
 
     public static void blockInvSave(Player player){

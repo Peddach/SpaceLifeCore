@@ -36,6 +36,10 @@ commands:
     description: "Opens your personal enderchests"
     aliases:
       - "ec"
+  warp:
+    description: "Show warps and teleport"
+    aliases:
+      - "warps"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -46,6 +50,12 @@ permissions:
   spacelife.command.spacelife.server:
     default: false
     description: "Change the server"
+  spacelife.command.spacelife.addwarp:
+    default: false
+    description: "Add warp"
+  spacelife.command.spacelife.removewarp:
+    default: false
+    description: "Remove a warp"
   spacelife.command.pay:
     default: true
     description: "Pay money to player"
@@ -86,3 +96,6 @@ permissions:
   spacelife.command.enderchest.other:
     default: false
     description: "View the enderchest of someone else"
+  spacelife.command.warp:
+    description: "view warps"
+    default: true

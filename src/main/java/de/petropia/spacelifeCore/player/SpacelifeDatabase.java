@@ -6,6 +6,8 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import de.petropia.spacelifeCore.SpacelifeCore;
+import de.petropia.spacelifeCore.warp.Warp;
+import de.petropia.spacelifeCore.warp.WarpVisit;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.filters.Filters;
@@ -17,15 +19,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class SpacelifePlayerDatabase {
-    private static SpacelifePlayerDatabase instance;
+public class SpacelifeDatabase {
+    private static SpacelifeDatabase instance;
+    private List<Warp> warps = new ArrayList<>();
     private final Hashtable<UUID, SpacelifePlayer> spacelifePlayerCache = new Hashtable<>();
     private Datastore datastore;
 
-    public SpacelifePlayerDatabase(){
+    public SpacelifeDatabase(){
         if(instance != null){
             return;
         }
@@ -45,7 +49,10 @@ public class SpacelifePlayerDatabase {
         MongoClient mongoClient = MongoClients.create(setting); //connecting
         datastore = Morphia.createDatastore(mongoClient, database);
         datastore.getMapper().map(SpacelifePlayer.class);
+        datastore.getMapper().map(Warp.class);
         datastore.ensureIndexes();
+        fetchWarps();
+        Bukkit.getScheduler().runTaskTimerAsynchronously(SpacelifeCore.getInstance(), this::fetchWarps, 20*60, 20*60*2);
     }
 
     /**
@@ -112,7 +119,86 @@ public class SpacelifePlayerDatabase {
         });
     }
 
-    public static SpacelifePlayerDatabase getInstance() {
+    /**
+     * Get a warp case-sensitive by its name from caches warps
+     * @param name Name of warp
+     */
+    public Warp getWarp(String name){
+        for(Warp warp: warps){
+            if(warp.getName().equalsIgnoreCase(name)){
+                return warp;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Query a warp from the database async
+     * @param name case-sensetive name of the warp
+     * @return CompletableFuture with warp or null if not found
+     */
+    public CompletableFuture<Warp> queryWarpFromDB(String name){
+        return CompletableFuture.supplyAsync(() -> datastore.find(Warp.class).filter(Filters.eq("name", name)).stream().findFirst().orElse(null));
+    }
+
+    /**
+     * Fetches all warps from db and refresh warp list. Removes invalid warp and invalid visits
+     */
+    private void fetchWarps(){
+        List<Warp> fetchedWarps = new ArrayList<>(datastore.find(Warp.class).stream().toList());
+        List<Warp> invalidWarps = new ArrayList<>();
+        fetchedWarps.forEach(warp -> {
+            if(warp.getExpireDate().toInstant().getEpochSecond() < Instant.now().getEpochSecond()){
+                invalidWarps.add(warp);
+                SpacelifeCore.getInstance().getLogger().info("Detected expired warp: " + warp.getName());
+                return;
+            }
+            List<WarpVisit> fetchedWarpVisits = new ArrayList<>(warp.getWarpVisitList());
+            List<WarpVisit> invalidVisits = new ArrayList<>();
+            fetchedWarpVisits.forEach(warpVisit -> {
+                if(warpVisit.getVisitExpireDate().toInstant().getEpochSecond() < Instant.now().getEpochSecond()){
+                    invalidVisits.add(warpVisit);
+                }
+            });
+            warp.getWarpVisitList().removeAll(invalidVisits);
+            datastore.save(warp);
+        });
+        fetchedWarps.removeAll(invalidWarps);
+        this.warps = fetchedWarps;
+        sortVisits();
+        if(invalidWarps.size() == 0){
+            return;
+        }
+        for(Warp warp : invalidWarps){
+            SpacelifeCore.getInstance().getLogger().info("Deleted Warp: " + warp.getName());
+            datastore.delete(warp);
+        }
+    }
+
+    /**
+     * Adds a warp and refetch all warps
+     * @param warp {@link Warp} to add
+     */
+    public void addWarp(Warp warp){
+        Bukkit.getScheduler().runTaskAsynchronously(SpacelifeCore.getInstance(), () -> {
+            datastore.save(warp);
+            fetchWarps();
+        });
+    }
+
+    /**
+     * Delete a warp case-sensitive
+     * @param name Name of the warp
+     */
+    public void removeWarp(String name){
+        Bukkit.getScheduler().runTaskAsynchronously(SpacelifeCore.getInstance(), () -> datastore.find(Warp.class).filter(Filters.eq("name", name)).delete().getDeletedCount());
+    }
+
+    public List<Warp> getWarps(){
+        return warps;
+    }
+
+    public static SpacelifeDatabase getInstance() {
         return instance;
     }
 
@@ -142,5 +228,14 @@ public class SpacelifePlayerDatabase {
             throw new NullPointerException(path + " is not set as a valid int in config.yml of SpacelifeCore!");
         }
         return i;
+    }
+
+    private void sortVisits(){
+        Comparator<Warp> comparator = Comparator.comparingInt(Warp::getVisits);
+        warps.sort(Collections.reverseOrder(comparator));
+    }
+
+    public void updateWarp(Warp warp) {
+        Bukkit.getScheduler().runTaskAsynchronously(SpacelifeCore.getInstance(),() -> datastore.save(warp));
     }
 }
