@@ -45,6 +45,10 @@ commands:
     aliases:
       - "nv"
       - "nachtsicht"
+  fly:
+    description: "Allow to fly"
+    aliases:
+      - "fliegen"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -106,4 +110,7 @@ permissions:
     default: true
   spacelife.command.nightvision:
     description: "Nightvision command"
+    default: false
+  spacelife.command.fly:
+    description: "fly on a server"
     default: false
