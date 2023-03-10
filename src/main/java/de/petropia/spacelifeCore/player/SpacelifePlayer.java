@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 
@@ -36,6 +37,7 @@ public class SpacelifePlayer {
     private int xpLevel;
     private float xpPoints;
     private int food;
+    private boolean hasNightvision;
     private Map<Integer, String> inventory;//Key for inv slot, String as base64 byte[] for serialized Item
     private Map<Integer, Map<Integer, String>> enderchests; //First int = enderchest number, //second map -> int = inv slot, String Itms as base64
     private List<String> potions;
@@ -43,6 +45,8 @@ public class SpacelifePlayer {
     private CrossServerLocation targetLocation;
     @Transient
     private int autoSaveTaskID = -1;
+    @Transient
+    private int nightvisionTaskID = -1;
 
     /**
      * This Construtor is for manuel first time player creation
@@ -376,6 +380,56 @@ public class SpacelifePlayer {
         }
         homes.set(homes.indexOf(oldHome), home);
         save();
+    }
+    public void toggleNightvision() {
+        Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+        if(player == null){
+            return;
+        }
+        hasNightvision = !hasNightvision;
+        save().exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
+        if(hasNightvision){
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Nachtsicht aktiviert", NamedTextColor.GREEN));
+            startNightNightvision();
+            return;
+        }
+        SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Nachtsicht deaktiviert", NamedTextColor.RED));
+        stopNightVision();
+    }
+
+    public boolean hasNightvision(){
+        return hasNightvision;
+    }
+
+    protected void startNightNightvision() {
+        if(nightvisionTaskID != -1){
+            return;
+        }
+        nightvisionTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(SpacelifeCore.getInstance(), () -> {
+            Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+            if(player == null){
+                Bukkit.getScheduler().cancelTask(nightvisionTaskID);
+                nightvisionTaskID = -1;
+                return;
+            }
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 20*30, 1, false, false, false));
+        }, 1, 20*10);
+    }
+
+    protected void stopNightVision(){
+        if(nightvisionTaskID == -1){
+            return;
+        }
+        Bukkit.getScheduler().cancelTask(nightvisionTaskID);
+        nightvisionTaskID = -1;
+        Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+        if(player == null){
+            return;
+        }
+        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }
 
     public ObjectId getObjectId() {

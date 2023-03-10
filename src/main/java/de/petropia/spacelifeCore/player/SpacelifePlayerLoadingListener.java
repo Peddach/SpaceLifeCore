@@ -41,6 +41,9 @@ public class SpacelifePlayerLoadingListener implements Listener {
         event.joinMessage(null);
         SpacelifePlayer player = SpacelifeDatabase.getInstance().getCachedPlayer(event.getPlayer().getUniqueId());
         player.loadInventory();
+        if(player.hasNightvision() && event.getPlayer().hasPermission("spaceclife.command.nightvision")){
+            player.startNightNightvision();
+        }
         CrossServerLocation target = player.getTargetLocation();
         if(target == null){
             return;

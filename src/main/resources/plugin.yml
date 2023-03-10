@@ -40,6 +40,11 @@ commands:
     description: "Show warps and teleport"
     aliases:
       - "warps"
+  nightvision:
+    description: "Give nightvision"
+    aliases:
+      - "nv"
+      - "nachtsicht"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -99,3 +104,6 @@ permissions:
   spacelife.command.warp:
     description: "view warps"
     default: true
+  spacelife.command.nightvision:
+    description: "Nightvision command"
+    default: false
