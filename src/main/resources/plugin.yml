@@ -49,6 +49,10 @@ commands:
     description: "Allow to fly"
     aliases:
       - "fliegen"
+  hat:
+    description: "Choose a hat"
+    aliases:
+      - "hut"
 permissions:
   spacelife.command.spacelife.debug:
     default: false
@@ -113,4 +117,7 @@ permissions:
     default: false
   spacelife.command.fly:
     description: "fly on a server"
+    default: false
+  spacelife.command.hat:
+    description: "set a hat"
     default: false

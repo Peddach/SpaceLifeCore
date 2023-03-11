@@ -52,6 +52,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         getCommand("warp").setTabCompleter(new WarpCommand());
         getCommand("nightvision").setExecutor(new NightVisionCommand());
         getCommand("fly").setExecutor(new FlyCommand());
+        getCommand("hat").setExecutor(new HatCommand());
     }
 
     /**
