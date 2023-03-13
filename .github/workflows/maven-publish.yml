@@ -1,0 +1,21 @@
+name: Publish to repo.petropia.de
+on:
+  push:
+    branches: ["main"]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup publish
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          server-id: petropia
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: publish package
+        run: mvn --batch-mode clean install deploy
+        env:
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_DEPLOYMENT_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_DEPLOYMENT_USERNAME }}
