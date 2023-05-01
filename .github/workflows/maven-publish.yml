@@ -1,4 +1,4 @@
-name: Publish to repo.petropia.de
+name: Publish to repo.petropia.net
 on:
   push:
     branches: ["main"]
