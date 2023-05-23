@@ -238,4 +238,8 @@ public class SpacelifeDatabase {
     public void updateWarp(Warp warp) {
         Bukkit.getScheduler().runTaskAsynchronously(SpacelifeCore.getInstance(),() -> datastore.save(warp));
     }
+
+    public Datastore getDatastore(){
+        return datastore;
+    }
 }
