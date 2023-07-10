@@ -9,6 +9,8 @@ import de.petropia.spacelifeCore.enderchest.EnderchestOpenListener;
 import de.petropia.spacelifeCore.home.HomeCommand;
 import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
+import de.petropia.spacelifeCore.scoreboard.ScoreboardElementRegistry;
+import de.petropia.spacelifeCore.scoreboard.implementation.GlobalMoneyScoreboardElement;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerMessageListener;
 import de.petropia.spacelifeCore.teleport.TpaCommand;
@@ -26,6 +28,8 @@ public class SpacelifeCore extends PetropiaPlugin {
         new SpacelifeDatabase();
         registerListener();
         registerCommands();
+        ScoreboardElementRegistry.registerElement(new GlobalMoneyScoreboardElement());
+        ScoreboardElementRegistry.startTicking();
     }
 
     private void registerListener(){
