@@ -52,9 +52,10 @@ public class ScoreboardElementRegistry {
                 skipScoreboardRenders = 10; //Next 10 times rendering will be skipped.
                 return;
             }
-            for(Player player : SCOREBOARDS.keySet()){
-                if(!player.isOnline()){
-                    SCOREBOARDS.remove(player).delete();
+            List<Player> playerList = new ArrayList<>(SCOREBOARDS.keySet());
+            for (Player value : playerList) {
+                if (!value.isOnline()) {
+                    SCOREBOARDS.remove(value);
                 }
             }
             for(Player player : Bukkit.getOnlinePlayers()){
