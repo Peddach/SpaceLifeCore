@@ -23,10 +23,11 @@ public class JobStats {
     }
 
     /**
-     * Add a level
+     * Add a level and reset allTimeMoney(=kind of XP)
      */
     public void levelUp(){
         level++;
+        allTimeMoney = 0;
     }
 
     /**
