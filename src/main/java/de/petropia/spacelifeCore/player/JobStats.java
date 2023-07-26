@@ -17,7 +17,7 @@ public class JobStats {
      * Add money to the current and allTimeMoney
      * @param amount as double
      */
-    public void addMoney(int amount){
+    public void addMoney(double amount){
         currentMoney += amount;
         allTimeMoney += amount;
     }
