@@ -43,6 +43,7 @@ public class SpacelifePlayer {
     private List<String> potions;
     private List<Home> homes;
     private CrossServerLocation targetLocation;
+    private HashMap<String, JobStats> jobStats; //Rely on autosave
     @Transient
     private int autoSaveTaskID = -1;
     @Transient
@@ -434,6 +435,14 @@ public class SpacelifePlayer {
 
     public ObjectId getObjectId() {
         return id;
+    }
+
+    /**
+     * Get the Job stats for each Job.
+     * @return String = id, Jobstats = level,money,xp,etc
+     */
+    public HashMap<String, JobStats> getJobStats() {
+        return jobStats;
     }
 
     /**
