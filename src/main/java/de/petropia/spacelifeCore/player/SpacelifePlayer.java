@@ -442,6 +442,9 @@ public class SpacelifePlayer {
      * @return String = id, Jobstats = level,money,xp,etc
      */
     public HashMap<String, JobStats> getJobStats() {
+        if(jobStats == null){
+            jobStats = new HashMap<>();
+        }
         return jobStats;
     }
 
