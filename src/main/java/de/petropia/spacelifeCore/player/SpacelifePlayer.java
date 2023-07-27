@@ -448,6 +448,11 @@ public class SpacelifePlayer {
         return jobStats;
     }
 
+    public void clearStats(){
+        jobStats = new HashMap<>();
+        save();
+    }
+
     /**
      * Internal method for saving the changed data to mongoDB
      *
