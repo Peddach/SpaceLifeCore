@@ -4,13 +4,19 @@ import dev.morphia.annotations.Entity;
 
 @Entity
 public class JobStats {
-    private final String id;
+    private String jobId;
     private int level;
     private double currentMoney;
     private double allTimeMoney;
+    private double buff;
+
+    /**
+     * Morphia constructor
+     */
+    private JobStats(){}
 
     public JobStats(String id){
-        this.id = id;
+        this.jobId = id;
     }
 
     /**
@@ -65,6 +71,14 @@ public class JobStats {
      * @return JobID as String
      */
     public String getId() {
-        return id;
+        return jobId;
+    }
+
+    public double getBuff() {
+        return buff;
+    }
+
+    public void setBuff(double buff) {
+        this.buff = buff;
     }
 }
