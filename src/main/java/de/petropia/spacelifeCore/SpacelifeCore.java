@@ -9,6 +9,7 @@ import de.petropia.spacelifeCore.economy.PayCommand;
 import de.petropia.spacelifeCore.enderchest.EnderchestCommand;
 import de.petropia.spacelifeCore.enderchest.EnderchestOpenListener;
 import de.petropia.spacelifeCore.home.HomeCommand;
+import de.petropia.spacelifeCore.player.PlayerDeathListener;
 import de.petropia.spacelifeCore.player.SpacelifeDatabase;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.spacelifeCore.scoreboard.ScoreboardElementRegistry;
@@ -41,6 +42,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         pluginManager.registerEvents(new BlockAnyActionListener(), instance);
         pluginManager.registerEvents(new EnderchestOpenListener(), instance);
         pluginManager.registerEvents(new BlockPlaceListener(), instance);
+        pluginManager.registerEvents(new PlayerDeathListener(), instance);
         CloudNetDriver.getInstance().getEventManager().registerListener(new CrossServerMessageListener());
         CloudNetDriver.getInstance().getEventManager().registerListener(new PayCommand());
         CloudNetDriver.getInstance().getEventManager().registerListener(new TpaCommand());
