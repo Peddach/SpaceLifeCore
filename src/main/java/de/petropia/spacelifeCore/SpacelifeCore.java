@@ -1,7 +1,9 @@
 package de.petropia.spacelifeCore;
 
 import de.dytanic.cloudnet.driver.CloudNetDriver;
+import de.petropia.spacelifeCore.blockdata.PlayerPlacedBlockManager;
 import de.petropia.spacelifeCore.commands.*;
+import de.petropia.spacelifeCore.blockdata.BlockPlaceListener;
 import de.petropia.spacelifeCore.economy.BalanceCommand;
 import de.petropia.spacelifeCore.economy.PayCommand;
 import de.petropia.spacelifeCore.enderchest.EnderchestCommand;
@@ -30,6 +32,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         registerCommands();
         ScoreboardElementRegistry.registerElement(new GlobalMoneyScoreboardElement());
         ScoreboardElementRegistry.startTicking();
+        PlayerPlacedBlockManager.registerListener();
     }
 
     private void registerListener(){
@@ -37,6 +40,7 @@ public class SpacelifeCore extends PetropiaPlugin {
         pluginManager.registerEvents(new SpacelifePlayerLoadingListener(), instance);
         pluginManager.registerEvents(new BlockAnyActionListener(), instance);
         pluginManager.registerEvents(new EnderchestOpenListener(), instance);
+        pluginManager.registerEvents(new BlockPlaceListener(), instance);
         CloudNetDriver.getInstance().getEventManager().registerListener(new CrossServerMessageListener());
         CloudNetDriver.getInstance().getEventManager().registerListener(new PayCommand());
         CloudNetDriver.getInstance().getEventManager().registerListener(new TpaCommand());
@@ -44,6 +48,7 @@ public class SpacelifeCore extends PetropiaPlugin {
 
     private void registerCommands(){
         getCommand("spacelife").setExecutor(new SpacelifeCommand());
+        getCommand("spacelife").setTabCompleter(new SpacelifeCommand());
         getCommand("pay").setExecutor(new PayCommand());
         getCommand("balance").setExecutor(new BalanceCommand());
         getCommand("spawn").setExecutor(new SpawnCommand());

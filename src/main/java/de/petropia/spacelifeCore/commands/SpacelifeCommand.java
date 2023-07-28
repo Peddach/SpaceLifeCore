@@ -1,12 +1,15 @@
 package de.petropia.spacelifeCore.commands;
 
+import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
 import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
-import de.petropia.spacelifeCore.player.SpacelifePlayer;
+import de.petropia.spacelifeCore.blockdata.PlayerPlacedBlock;
+import de.petropia.spacelifeCore.blockdata.PlayerPlacedBlockManager;
 import de.petropia.spacelifeCore.player.SpacelifeDatabase;
+import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.spacelifeCore.player.SpacelifePlayerLoadingListener;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
@@ -15,18 +18,24 @@ import de.petropia.turtleServer.server.TurtleServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
-public class SpacelifeCommand implements CommandExecutor {
+public class SpacelifeCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(args.length == 0){
@@ -53,7 +62,37 @@ public class SpacelifeCommand implements CommandExecutor {
             removeWarpSubcommand(sender, args);
             return true;
         }
+        if(args[0].equalsIgnoreCase("blockInfo") && sender.hasPermission("spacelife.command.spacelife.blockInfo")){
+            blockInfoSubCommand(sender);
+            return true;
+        }
         return false;
+    }
+
+    private void blockInfoSubCommand(CommandSender sender) {
+        if(!(sender instanceof Player player)){
+            return;
+        }
+        Block lookBlock = player.getTargetBlock(5, TargetBlockInfo.FluidMode.SOURCE_ONLY);
+        if(lookBlock == null){
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Bitte gucke einen Block an", NamedTextColor.RED));
+            return;
+        }
+        if(!PlayerPlacedBlockManager.isBlockPlacedByPlayer(lookBlock)){
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Dieser Block wurde nicht von einem Spieler plaziert", NamedTextColor.GREEN));
+            return;
+        }
+        PlayerPlacedBlock playerPlacedBlock = PlayerPlacedBlockManager.getPlayerPlacedBlock(lookBlock);
+        TurtleServer.getMongoDBHandler().getPetropiaPlayerByUUID(playerPlacedBlock.uuid().toString()).thenAccept(user -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(ZoneId.of("Europe/Berlin"));
+            String date = formatter.format(playerPlacedBlock.placedDate());
+            String playerName = user.getUserName();
+            SpacelifeCore.getInstance().getMessageUtil().sendMessage(player,
+                    Component.text("Spieler: ", NamedTextColor.GRAY)
+                    .append(Component.text(playerName, NamedTextColor.GOLD))
+                    .append(Component.text(" - Datum: ", NamedTextColor.GRAY))
+                    .append(Component.text(date, NamedTextColor.GOLD)));
+        });
     }
 
     private void removeWarpSubcommand(CommandSender sender, String[] args){
@@ -214,5 +253,38 @@ public class SpacelifeCommand implements CommandExecutor {
         sender.sendMessage(Component.text(">> ", NamedTextColor.GRAY)
                 .append(Component.text(subcommand, NamedTextColor.GOLD))
                 .append(Component.text(" - " + description, NamedTextColor.GRAY)));
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+        if (args.length == 1) {
+            // Provide completions for the first argument
+            if (sender.hasPermission("spacelife.command.spacelife.debug")) {
+                completions.add("debug");
+            }
+            if (sender.hasPermission("spacelife.command.spacelife.jump")) {
+                completions.add("jump");
+            }
+            if (sender.hasPermission("spacelife.command.spacelife.server")) {
+                completions.add("server");
+            }
+            if (sender.hasPermission("spacelife.command.spacelife.addwarp")) {
+                completions.add("addwarp");
+            }
+            if (sender.hasPermission("spacelife.command.spacelife.removewarp")) {
+                completions.add("removewarp");
+            }
+            if (sender.hasPermission("spacelife.command.spacelife.blockInfo")) {
+                completions.add("blockInfo");
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("debug")) {
+            // Provide completions for the second argument of the "debug" subcommand
+            completions.add("saveInv");
+            completions.add("loadInv");
+            completions.add("tpToPlayer");
+        }
+        // You can add more completions for other subcommands and arguments here
+        return completions;
     }
 }
