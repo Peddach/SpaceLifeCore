@@ -1,16 +1,15 @@
 package de.petropia.spacelifeCore.economy;
 
-import de.dytanic.cloudnet.common.document.gson.JsonDocument;
-import de.dytanic.cloudnet.driver.CloudNetDriver;
-import de.dytanic.cloudnet.driver.channel.ChannelMessage;
-import de.dytanic.cloudnet.driver.event.EventListener;
-import de.dytanic.cloudnet.driver.event.events.channel.ChannelMessageReceiveEvent;
-import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
-import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
-import de.petropia.spacelifeCore.player.SpacelifePlayer;
+import de.petropia.spacelifeCore.economy.dto.PlayerPayDTO;
 import de.petropia.spacelifeCore.player.SpacelifeDatabase;
+import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.turtleServer.server.TurtleServer;
+import eu.cloudnetservice.driver.channel.ChannelMessage;
+import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
+import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -21,7 +20,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class PayCommand implements CommandExecutor {
@@ -68,23 +67,24 @@ public class PayCommand implements CommandExecutor {
             }
             player.sendActionBar(Component.text("-", NamedTextColor.RED).decorate(TextDecoration.BOLD).append(Component.text(finalAmount, NamedTextColor.GOLD).decorate(TextDecoration.BOLD)));
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(finalAmount + "$", NamedTextColor.GOLD).append(Component.text(" wurden an ", NamedTextColor.GRAY)).append(Component.text(petropiaPlayer.getUserName(), NamedTextColor.GOLD)).append(Component.text(" gezahl", NamedTextColor.GRAY)));
-            ICloudPlayer cloudPlayerTarget = CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getOnlinePlayer(target.getUUID());
+            CloudPlayer cloudPlayerTarget = SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().onlinePlayer(target.getUUID());
             if(cloudPlayerTarget == null){
                 target.addMoney(finalAmount);
                 return;
             }
-            List<String> groups = List.of(cloudPlayerTarget.getConnectedService().getGroups());
+            Set<String> groups = cloudPlayerTarget.connectedService().groups();
             if(!groups.contains("SpaceLife")){
                 target.addMoney(finalAmount);
                 return;
             }
+            PlayerPayDTO dto = new PlayerPayDTO(
+                    target.getUUID(),
+                    finalAmount,
+                    player.getName());
             ChannelMessage message = ChannelMessage.builder()
                     .channel("spacelife_pay")
-                    .json(JsonDocument.newDocument()
-                            .append("player", target.getUUID().toString())
-                            .append("amount", finalAmount)
-                            .append("payer", player.getName()))
-                    .targetService(cloudPlayerTarget.getConnectedService().getServiceId().getName())
+                    .buffer(DataBuf.empty().writeObject(dto))
+                    .targetService(cloudPlayerTarget.connectedService().serviceId().name())
                     .build();
             message.send();
         });
@@ -93,25 +93,22 @@ public class PayCommand implements CommandExecutor {
 
     @EventListener
     public void onPayMessageReceive(ChannelMessageReceiveEvent event){
-        if(event.isQuery()){
+        if(event.query()){
             return;
         }
-        ChannelMessage message = event.getChannelMessage();
-        if(!message.getChannel().equalsIgnoreCase("spacelife_pay")){
+        ChannelMessage message = event.channelMessage();
+        if(!message.channel().equalsIgnoreCase("spacelife_pay")){
             return;
         }
-        if(message.getJson().isEmpty()){
-            return;
-        }
-        String playerUUID = message.getJson().getString("player");
-        double amount = message.getJson().getDouble("amount");
-        String payer = message.getJson().getString("payer");
-        UUID uuid = UUID.fromString(playerUUID);
-        Player player = Bukkit.getPlayer(uuid);
+        PlayerPayDTO dto = message.content().readObject(PlayerPayDTO.class);
+        UUID playerUUID = dto.targetUUID();
+        double amount = dto.amount();
+        String payer = dto.payer();
+        Player player = Bukkit.getPlayer(playerUUID);
         if(player == null){
             return;
         }
-        SpacelifePlayer target = SpacelifeDatabase.getInstance().getCachedPlayer(uuid);
+        SpacelifePlayer target = SpacelifeDatabase.getInstance().getCachedPlayer(playerUUID);
         target.addMoney(amount);
         SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text(payer, NamedTextColor.GOLD).append(Component.text(" hat dir ", NamedTextColor.GRAY).append(Component.text(amount + "$ ", NamedTextColor.GOLD).append(Component.text("überwiesen", NamedTextColor.GRAY)))));
         player.sendActionBar(Component.text("+", NamedTextColor.GREEN).decorate(TextDecoration.BOLD).append(Component.text(amount, NamedTextColor.GOLD).decorate(TextDecoration.BOLD)));

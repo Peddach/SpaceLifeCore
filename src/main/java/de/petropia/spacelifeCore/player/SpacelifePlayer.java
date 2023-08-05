@@ -1,13 +1,13 @@
 package de.petropia.spacelifeCore.player;
 
-import de.dytanic.cloudnet.driver.CloudNetDriver;
-import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.home.Home;
 import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import de.petropia.spacelifeCore.teleport.CrossServerMessageListener;
 import dev.morphia.annotations.*;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.cloudnetservice.driver.provider.CloudServiceProvider;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bson.types.ObjectId;
@@ -278,7 +278,7 @@ public class SpacelifePlayer {
                 targetLocation = null;
                 return false;
             }
-            if (CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(targetLocation.getServer()) == null) {
+            if (InjectionLayer.ext().instance(CloudServiceProvider.class).serviceByName(targetLocation.getServer()) == null) {
                 targetLocation = null;
                 return false;
             }
@@ -291,8 +291,7 @@ public class SpacelifePlayer {
             SpacelifePlayerLoadingListener.blockInvSave(bukkitPlayer);
             saveInventory().join();
             BlockAnyActionListener.blockPlayer(bukkitPlayer);
-            CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class)
-                    .getPlayerExecutor(UUID.fromString(uuid)).connect(targetLocation.getServer());
+            SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().playerExecutor(UUID.fromString(uuid)).connect(targetLocation.getServer());
             Bukkit.getScheduler().runTaskLater(SpacelifeCore.getInstance(), () -> {
                 if (bukkitPlayer.isOnline()) {
                     bukkitPlayer.kick(Component.text("Technischer Fehler (Not teleported). Sollte dies öfter passieren, melde es dem Team!", NamedTextColor.RED));

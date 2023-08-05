@@ -1,16 +1,17 @@
 package de.petropia.spacelifeCore.teleport;
 
-import de.dytanic.cloudnet.common.document.gson.JsonDocument;
-import de.dytanic.cloudnet.driver.CloudNetDriver;
-import de.dytanic.cloudnet.driver.channel.ChannelMessage;
-import de.dytanic.cloudnet.driver.event.EventListener;
-import de.dytanic.cloudnet.driver.event.events.channel.ChannelMessageReceiveEvent;
-import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
-import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
+import de.petropia.spacelifeCore.SpacelifeCore;
+import de.petropia.spacelifeCore.teleport.dto.TeleportQueryDTO;
+import eu.cloudnetservice.driver.channel.ChannelMessage;
+import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
+import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -22,66 +23,78 @@ public class CrossServerMessageListener {
            if(location.getPlayerUUID() == null || location.getPlayerUUID().isEmpty()){
                return null;
            }
-           ICloudPlayer cloudPlayer = CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getOnlinePlayer(UUID.fromString(location.getPlayerUUID()));
+           CloudPlayer cloudPlayer = SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().onlinePlayer(UUID.fromString(location.getPlayerUUID()));
            if (cloudPlayer == null) {
                return null;
            }
-           if(cloudPlayer.getConnectedService() == null){
+           if(cloudPlayer.connectedService() == null){
                return null;
            }
-           List<String> groups = List.of(cloudPlayer.getConnectedService().getGroups());
+           List<String> groups = new ArrayList<>(cloudPlayer.connectedService().groups());
            if(!groups.contains("SpaceLife")){
                return null;
            }
            ChannelMessage response = ChannelMessage.builder()
                    .channel("spacelife_teleport_query")
                    .message(location.getPlayerUUID())
-                   .targetService(cloudPlayer.getConnectedService().getServiceId().getName())
+                   .targetService(cloudPlayer.connectedService().serviceId().name())
                    .build()
                    .sendSingleQuery();
            if(response == null){
                return null;
            }
-           JsonDocument json = response.getJson();
-           if(!json.getString("result").equalsIgnoreCase("success")){
+           DataBuf dataBuf = response.content();
+           TeleportQueryDTO playerPositionQueryDTO = new TeleportQueryDTO(
+                   dataBuf.readString(),
+                   dataBuf.readDouble(),
+                   dataBuf.readDouble(),
+                   dataBuf.readDouble(),
+                   dataBuf.readFloat(),
+                   dataBuf.readFloat(),
+                   dataBuf.readString()
+           );
+           if(!playerPositionQueryDTO.result().equalsIgnoreCase("success")){
                return null;
            }
-           location.setX(json.getDouble("x"));
-           location.setY(json.getDouble("y"));
-           location.setZ(json.getDouble("z"));
-           location.setYaw(json.getFloat("yaw"));
-           location.setPitch(json.getFloat("pitch"));
-           location.setWorld(json.getString("world"));
-           location.setServer(cloudPlayer.getConnectedService().getServiceId().getName());
+           location.setX(playerPositionQueryDTO.x());
+           location.setY(playerPositionQueryDTO.y());
+           location.setZ(playerPositionQueryDTO.z());
+           location.setYaw(playerPositionQueryDTO.yaw());
+           location.setPitch(playerPositionQueryDTO.pitch());
+           location.setWorld(playerPositionQueryDTO.world());
+           location.setServer(cloudPlayer.connectedService().serviceId().name());
            return location;
        });
    }
 
    @EventListener
    public void onMessageRecive(ChannelMessageReceiveEvent event){
-        if(event.getMessage() == null || !event.isQuery()){
+        if(!event.query()){
             return;
         }
-        if(!event.getChannel().equalsIgnoreCase("spacelife_teleport_query")){
+        if(!event.channel().equalsIgnoreCase("spacelife_teleport_query")){
              return;
         }
-        UUID uuid = UUID.fromString(event.getMessage());
+        UUID uuid = UUID.fromString(event.message());
         Player player = Bukkit.getPlayer(uuid);
         if(player == null){
-            event.setQueryResponse(ChannelMessage.buildResponseFor(event.getChannelMessage())
-                    .json(JsonDocument.newDocument("result", "fail"))
+            TeleportQueryDTO teleportQueryDTO = new TeleportQueryDTO("fail", 0, 0, 0 ,0 ,0, "unkown");
+            event.queryResponse(ChannelMessage.buildResponseFor(event.channelMessage())
+                    .buffer(DataBuf.empty().writeObject(teleportQueryDTO))
                     .build());
             return;
         }
         Location loc = player.getLocation();
-        JsonDocument jsonDocument = JsonDocument.newDocument("result", "success")
-                .append("x", loc.getX())
-                .append("y", loc.getY())
-                .append("z", loc.getZ())
-                .append("world", loc.getWorld().getName())
-                .append("yaw", loc.getYaw())
-                .append("pitch", loc.getPitch());
-        event.setQueryResponse(ChannelMessage.buildResponseFor(event.getChannelMessage()).json(jsonDocument).build());
+        TeleportQueryDTO teleportQueryDTO = new TeleportQueryDTO(
+                "success",
+                loc.getX(),
+                loc.getY(),
+                loc.getZ(),
+                loc.getPitch(),
+                loc.getYaw(),
+                loc.getWorld().getName()
+        );
+        event.queryResponse(ChannelMessage.buildResponseFor(event.channelMessage()).buffer(DataBuf.empty().writeObject(teleportQueryDTO)).build());
    }
 
 }

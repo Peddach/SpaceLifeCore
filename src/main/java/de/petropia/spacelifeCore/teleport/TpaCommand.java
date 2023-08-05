@@ -1,14 +1,14 @@
 package de.petropia.spacelifeCore.teleport;
 
-import de.dytanic.cloudnet.common.document.gson.JsonDocument;
-import de.dytanic.cloudnet.driver.CloudNetDriver;
-import de.dytanic.cloudnet.driver.channel.ChannelMessage;
-import de.dytanic.cloudnet.driver.event.EventListener;
-import de.dytanic.cloudnet.driver.event.events.channel.ChannelMessageReceiveEvent;
-import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.player.SpacelifePlayer;
 import de.petropia.spacelifeCore.player.SpacelifeDatabase;
+import de.petropia.spacelifeCore.teleport.dto.TpaRequestAcceptDTO;
+import de.petropia.spacelifeCore.teleport.dto.TpaRequestSendDTO;
+import eu.cloudnetservice.driver.channel.ChannelMessage;
+import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -20,6 +20,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -71,26 +72,28 @@ public class TpaCommand implements CommandExecutor {
             return;
         }
         REQUEST_MAP.remove(request.requestID());
+        TpaRequestAcceptDTO acceptDTO = new TpaRequestAcceptDTO(
+                UUID.fromString(request.requesterUUID()),
+                UUID.fromString(request.targetUUID()),
+                sender.getName(),
+                accept
+        );
         ChannelMessage.builder()
                 .channel("spacelife_tpa_accept")
                 .message("spacelife_tpa_accept")
-                .json(JsonDocument.newDocument()
-                        .append("requesterUUID", request.requesterUUID())
-                        .append("targetName", sender.getName())
-                        .append("targetUUID", request.targetUUID())
-                        .append("accept", accept))
+                .buffer(DataBuf.empty().writeObject(acceptDTO))
                 .targetService(request.serviceID())
                 .build()
                 .send();
     }
 
     private void sendRequest(Player player, String targetName){
-        CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getFirstOnlinePlayerAsync(targetName).onComplete(target -> {
+        SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().firstOnlinePlayerAsync(targetName).thenAccept(target -> {
             if (target == null) {
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Der Spieler konnte nicht gefunden werden", NamedTextColor.RED));
                 return;
             }
-            List<String> groups = List.of(target.getConnectedService().getGroups());
+            List<String> groups = new ArrayList<>(target.connectedService().groups());
             if(!groups.contains("SpaceLife")){
                 SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Dieser Spieler ist nicht auf Spacelife!", NamedTextColor.RED));
                 return;
@@ -98,13 +101,15 @@ public class TpaCommand implements CommandExecutor {
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Du hast erfolgreich eine Teleportanfrage an ", NamedTextColor.GRAY)
                 .append(Component.text(targetName, NamedTextColor.GOLD))
                 .append(Component.text(" gestellt", NamedTextColor.GRAY)));
+            TpaRequestSendDTO tpaRequestSendDTO = new TpaRequestSendDTO(
+                    player.getUniqueId(),
+                    player.getName(),
+                    target.uniqueId()
+            );
             ChannelMessage.builder()
-                    .targetService(target.getConnectedService().getServiceId().getName())
+                    .targetService(target.connectedService().serviceId().name())
                     .message("spacelife_tpa_request")
-                    .json(JsonDocument.newDocument()
-                            .append("playerUUID", player.getUniqueId().toString())
-                            .append("playerName", player.getName())
-                            .append("targetUUID", target.getUniqueId().toString()))
+                    .buffer(DataBuf.empty().writeObject(tpaRequestSendDTO))
                     .channel("spacelife_tpa_request")
                     .build()
                     .send();
@@ -113,20 +118,18 @@ public class TpaCommand implements CommandExecutor {
 
     @EventListener
     public void onAccept(ChannelMessageReceiveEvent event){
-        if(!event.getChannel().equalsIgnoreCase("spacelife_tpa_accept")){
+        if(!event.channel().equalsIgnoreCase("spacelife_tpa_accept")){
             return;
         }
-        if(event.getChannelMessage().getJson().isEmpty()){
-            return;
-        }
-        String requesterUUID = event.getChannelMessage().getJson().getString("requesterUUID");
-        String targetUUID = event.getChannelMessage().getJson().getString("targetUUID");
-        String targetName = event.getChannelMessage().getJson().getString("targetName");
-        boolean accepted = event.getChannelMessage().getJson().getBoolean("accept");
+        TpaRequestAcceptDTO acceptDTO = event.channelMessage().content().readObject(TpaRequestAcceptDTO.class);
+        UUID requesterUUID = acceptDTO.requesterUUID();
+        UUID targetUUID = acceptDTO.targetUUID();
+        String targetName = acceptDTO.targetName();
+        boolean accepted = acceptDTO.accepted();
         if(requesterUUID == null || targetUUID == null || targetName == null){
             return;
         }
-        Player requester = Bukkit.getPlayer(UUID.fromString(requesterUUID));
+        Player requester = Bukkit.getPlayer(requesterUUID);
         if(requester == null){
             return;
         }
@@ -136,26 +139,21 @@ public class TpaCommand implements CommandExecutor {
         }
         SpacelifeCore.getInstance().getMessageUtil().sendMessage(requester, Component.text(targetName, NamedTextColor.GOLD).append(Component.text(" hat deine Teleportanfrage angenommen", NamedTextColor.GRAY)));
         SpacelifePlayer spacelifePlayer = SpacelifeDatabase.getInstance().getCachedPlayer(requester.getUniqueId());
-        spacelifePlayer.teleportCrossServer(new CrossServerLocation(targetUUID));
+        spacelifePlayer.teleportCrossServer(new CrossServerLocation(targetUUID.toString()));
     }
 
     @EventListener
     public void onRequest(ChannelMessageReceiveEvent event) {
-        if (!event.getChannel().equalsIgnoreCase("spacelife_tpa_request")) {
+        if (!event.channel().equalsIgnoreCase("spacelife_tpa_request")) {
             return;
         }
-        if (event.getChannelMessage().getJson().isEmpty()) {
-            return;
-        }
-        String userUUID = event.getChannelMessage().getJson().getString("playerUUID");
-        String userName = event.getChannelMessage().getJson().getString("playerName");
-        String targetUUID = event.getChannelMessage().getJson().getString("targetUUID");
-        if (targetUUID == null || userUUID == null || userName == null || targetUUID.isEmpty() || userUUID.isEmpty() || userName.isEmpty()) {
-            return;
-        }
-        TpaRequest request = new TpaRequest(UUID.randomUUID(), userUUID, userName, targetUUID, event.getChannelMessage().getSender().getName());
+        TpaRequestSendDTO sendDTO = event.channelMessage().content().readObject(TpaRequestSendDTO.class);
+        UUID userUUID = sendDTO.playerUUID();
+        String userName = sendDTO.playerName();
+        UUID targetUUID = sendDTO.targetUUID();
+        TpaRequest request = new TpaRequest(UUID.randomUUID(), userUUID.toString(), userName, targetUUID.toString(), event.channelMessage().sender().name());
         REQUEST_MAP.put(request.requestID(), request);
-        Player target = Bukkit.getPlayer(UUID.fromString(targetUUID));
+        Player target = Bukkit.getPlayer(targetUUID);
         if(target == null){
             return;
         }

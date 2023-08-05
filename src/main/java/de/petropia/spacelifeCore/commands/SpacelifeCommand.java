@@ -1,10 +1,6 @@
 package de.petropia.spacelifeCore.commands;
 
-import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import de.dytanic.cloudnet.driver.CloudNetDriver;
-import de.dytanic.cloudnet.ext.bridge.player.ICloudPlayer;
-import de.dytanic.cloudnet.ext.bridge.player.IPlayerManager;
 import de.petropia.spacelifeCore.SpacelifeCore;
 import de.petropia.spacelifeCore.blockdata.PlayerPlacedBlock;
 import de.petropia.spacelifeCore.blockdata.PlayerPlacedBlockManager;
@@ -15,9 +11,11 @@ import de.petropia.spacelifeCore.teleport.BlockAnyActionListener;
 import de.petropia.spacelifeCore.teleport.CrossServerLocation;
 import de.petropia.spacelifeCore.warp.Warp;
 import de.petropia.turtleServer.server.TurtleServer;
+import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -33,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 
 public class SpacelifeCommand implements CommandExecutor, TabCompleter {
@@ -73,8 +72,8 @@ public class SpacelifeCommand implements CommandExecutor, TabCompleter {
         if(!(sender instanceof Player player)){
             return;
         }
-        Block lookBlock = player.getTargetBlock(5, TargetBlockInfo.FluidMode.SOURCE_ONLY);
-        if(lookBlock == null){
+        Block lookBlock = player.getTargetBlock(Set.of(Material.AIR), 5);
+        if(lookBlock.getType() == Material.AIR){
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(player, Component.text("Bitte gucke einen Block an", NamedTextColor.RED));
             return;
         }
@@ -221,12 +220,12 @@ public class SpacelifeCommand implements CommandExecutor, TabCompleter {
         if(!(sender instanceof Player bukkitPlayer)){
             return;
         }
-        ICloudPlayer player =  CloudNetDriver.getInstance().getServicesRegistry().getFirstService(IPlayerManager.class).getFirstOnlinePlayer(args[1]);
+        CloudPlayer player = SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().firstOnlinePlayer(args[1]);
         if(player == null){
             SpacelifeCore.getInstance().getMessageUtil().sendMessage(sender, Component.text("Der Spieler ist nicht online", NamedTextColor.RED));
             return;
         }
-        CrossServerLocation location = new CrossServerLocation(player.getUniqueId().toString());
+        CrossServerLocation location = new CrossServerLocation(player.uniqueId().toString());
         SpacelifeDatabase.getInstance().getCachedPlayer(bukkitPlayer.getUniqueId()).teleportCrossServer(location);
     }
 
