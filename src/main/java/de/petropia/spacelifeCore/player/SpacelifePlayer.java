@@ -139,6 +139,7 @@ public class SpacelifePlayer {
 
     /**
      * Saves player inventory and clears it. Player needs to be online!
+     * Only Call sync
      * Saves also:
      * - XP
      */
@@ -289,14 +290,17 @@ public class SpacelifePlayer {
                 return true;
             }
             SpacelifePlayerLoadingListener.blockInvSave(bukkitPlayer);
-            saveInventory().join();
-            BlockAnyActionListener.blockPlayer(bukkitPlayer);
-            SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().playerExecutor(UUID.fromString(uuid)).connect(targetLocation.getServer());
-            Bukkit.getScheduler().runTaskLater(SpacelifeCore.getInstance(), () -> {
-                if (bukkitPlayer.isOnline()) {
-                    bukkitPlayer.kick(Component.text("Technischer Fehler (Not teleported). Sollte dies öfter passieren, melde es dem Team!", NamedTextColor.RED));
-                }
-            }, 7 * 20);
+            Bukkit.getScheduler().runTask(SpacelifeCore.getInstance(), () -> {
+               saveInventory().thenAccept(v -> {
+                   SpacelifeCore.getInstance().getCloudNetAdapter().playerManagerInstance().playerExecutor(UUID.fromString(uuid)).connect(targetLocation.getServer());
+                   Bukkit.getScheduler().runTaskLater(SpacelifeCore.getInstance(), () -> {
+                       if (bukkitPlayer.isOnline()) {
+                           bukkitPlayer.kick(Component.text("Technischer Fehler (Not teleported). Sollte dies öfter passieren, melde es dem Team!", NamedTextColor.RED));
+                       }
+                   }, 7 * 20);
+               });
+                BlockAnyActionListener.blockPlayer(bukkitPlayer);
+            });
             return true;
         });
     }
